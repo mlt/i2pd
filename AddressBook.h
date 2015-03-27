@@ -18,12 +18,12 @@ namespace i2p
 namespace client
 {
 	const char DEFAULT_SUBSCRIPTION_ADDRESS[] = "http://udhdrtrcetjm5sxzskjyr5ztpeszydbh4dpl3pl4utgqqw2v4jna.b32.i2p/hosts.txt";
-	const int INITIAL_SUBSCRIPTION_UPDATE_TIMEOUT = 3; // in minutes	
-	const int INITIAL_SUBSCRIPTION_RETRY_TIMEOUT = 1; // in minutes			
-	const int CONTINIOUS_SUBSCRIPTION_UPDATE_TIMEOUT = 720; // in minutes (12 hours)			
-	const int CONTINIOUS_SUBSCRIPTION_RETRY_TIMEOUT = 5; // in minutes	
+	const int INITIAL_SUBSCRIPTION_UPDATE_TIMEOUT = 3; // in minutes
+	const int INITIAL_SUBSCRIPTION_RETRY_TIMEOUT = 1; // in minutes
+	const int CONTINIOUS_SUBSCRIPTION_UPDATE_TIMEOUT = 720; // in minutes (12 hours)
+	const int CONTINIOUS_SUBSCRIPTION_RETRY_TIMEOUT = 5; // in minutes
 	const int SUBSCRIPTION_REQUEST_TIMEOUT = 60; //in second
-	
+
 	inline std::string GetB32Address(const i2p::data::IdentHash& ident) { return ident.ToBase32().append(".b32.i2p"); }
 
 	class AddressBookStorage // interface for storage
@@ -31,13 +31,13 @@ namespace client
 		public:
 
 			virtual ~AddressBookStorage () {};
-			virtual bool GetAddress (const i2p::data::IdentHash& ident, i2p::data::IdentityEx& address) const = 0;	
+			virtual bool GetAddress (const i2p::data::IdentHash& ident, i2p::data::IdentityEx& address) const = 0;
 			virtual void AddAddress (const i2p::data::IdentityEx& address) = 0;
 			virtual void RemoveAddress (const i2p::data::IdentHash& ident) = 0;
-		
+
 			virtual int Load (std::map<std::string, i2p::data::IdentHash>& addresses) = 0;
 			virtual int Save (const std::map<std::string, i2p::data::IdentHash>& addresses) = 0;
-	};			
+	};
 
 	class AddressBookSubscription;
 	class AddressBook
@@ -61,13 +61,13 @@ namespace client
 			std::string ToAddress(const i2p::data::IdentityEx& ident) { return ToAddress(ident.GetIdentHash ()); }
 		private:
 
-			AddressBookStorage * CreateStorage ();	
+			AddressBookStorage * CreateStorage ();
 			void LoadHosts ();
 			void LoadSubscriptions ();
 
 			void HandleSubscriptionsUpdateTimer (const boost::system::error_code& ecode);
 
-		private:	
+		private:
 
 			std::mutex m_AddressBookMutex;
 			std::map<std::string, i2p::data::IdentHash>  m_Addresses;
@@ -88,7 +88,7 @@ namespace client
 		private:
 
 			void Request ();
-		
+
 		private:
 
 			AddressBook& m_Book;

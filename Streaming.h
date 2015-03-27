@@ -40,21 +40,21 @@ namespace stream
 
 	const size_t STREAMING_MTU = 1730;
 	const size_t MAX_PACKET_SIZE = 4096;
-	const size_t COMPRESSION_THRESHOLD_SIZE = 66;	
+	const size_t COMPRESSION_THRESHOLD_SIZE = 66;
 	const int ACK_SEND_TIMEOUT = 200; // in milliseconds
-	const int MAX_NUM_RESEND_ATTEMPTS = 6;	
+	const int MAX_NUM_RESEND_ATTEMPTS = 6;
 	const int WINDOW_SIZE = 6; // in messages
 	const int MIN_WINDOW_SIZE = 1;
-	const int MAX_WINDOW_SIZE = 128;		
+	const int MAX_WINDOW_SIZE = 128;
 	const int INITIAL_RTT = 8000; // in milliseconds
 	const int INITIAL_RTO = 9000; // in milliseconds
-	
+
 	struct Packet
 	{
 		size_t len, offset;
-		uint8_t buf[MAX_PACKET_SIZE];	
+		uint8_t buf[MAX_PACKET_SIZE];
 		uint64_t sendTime;
-		
+
 		Packet (): len (0), offset (0), sendTime (0) {};
 		uint8_t * GetBuffer () { return buf + offset; };
 		size_t GetLength () const { return len - offset; };
@@ -73,15 +73,15 @@ namespace stream
 
 		bool IsSYN () const { return GetFlags () & PACKET_FLAG_SYNCHRONIZE; };
 		bool IsNoAck () const { return GetFlags () & PACKET_FLAG_NO_ACK; };
-	};	
+	};
 
 	struct PacketCmp
 	{
 		bool operator() (const Packet * p1, const Packet * p2) const
-  		{	
-			return p1->GetSeqn () < p2->GetSeqn (); 
+		{
+			return p1->GetSeqn () < p2->GetSeqn ();
 		};
-	};	
+	};
 
 	enum StreamStatus
 	{
@@ -90,16 +90,16 @@ namespace stream
 		eStreamStatusReset,
 		eStreamStatusClosing,
 		eStreamStatusClosed
-	};	
-	
+	};
+
 	class StreamingDestination;
 	class Stream: public std::enable_shared_from_this<Stream>
-	{	
+	{
 		public:
 
-			Stream (boost::asio::io_service& service, StreamingDestination& local, 
-				std::shared_ptr<const i2p::data::LeaseSet> remote, int port = 0); // outgoing
-			Stream (boost::asio::io_service& service, StreamingDestination& local); // incoming			
+			Stream (boost::asio::io_service& service, StreamingDestination& local,
+			        std::shared_ptr<const i2p::data::LeaseSet> remote, int port = 0); // outgoing
+			Stream (boost::asio::io_service& service, StreamingDestination& local); // incoming
 
 			~Stream ();
 			uint32_t GetSendStreamID () const { return m_SendStreamID; };
@@ -109,14 +109,14 @@ namespace stream
 			bool IsOpen () const { return m_Status ==  eStreamStatusOpen; };
 			bool IsEstablished () const { return m_SendStreamID; };
 			StreamingDestination& GetLocalDestination () { return m_LocalDestination; };
-			
+
 			void HandleNextPacket (Packet * packet);
 			size_t Send (const uint8_t * buf, size_t len);
-			
+
 			template<typename Buffer, typename ReceiveHandler>
 			void AsyncReceive (const Buffer& buffer, ReceiveHandler handler, int timeout = 0);
 			size_t ReadSome (uint8_t * buf, size_t len) { return ConcatenatePackets (buf, len); };
-			
+
 			void Close ();
 			void Cancel () { m_ReceiveTimer.cancel (); };
 
@@ -127,7 +127,7 @@ namespace stream
 			size_t GetSendBufferSize () const { return m_SendBuffer.rdbuf ()->in_avail (); };
 			int GetWindowSize () const { return m_WindowSize; };
 			int GetRTT () const { return m_RTT; };
-			
+
 		private:
 
 			void Terminate ();
@@ -144,16 +144,16 @@ namespace stream
 			size_t ConcatenatePackets (uint8_t * buf, size_t len);
 
 			void UpdateCurrentRemoteLease ();
-			
+
 			template<typename Buffer, typename ReceiveHandler>
 			void HandleReceiveTimer (const boost::system::error_code& ecode, const Buffer& buffer, ReceiveHandler handler);
-			
+
 			void ScheduleResend ();
 			void HandleResendTimer (const boost::system::error_code& ecode);
 			void HandleAckSendTimer (const boost::system::error_code& ecode);
 
 			I2NPMessage * CreateDataMessage (const uint8_t * payload, size_t len);
-			
+
 		private:
 
 			boost::asio::io_service& m_Service;
@@ -187,25 +187,25 @@ namespace stream
 
 			typedef std::function<void (std::shared_ptr<Stream>)> Acceptor;
 
-			StreamingDestination (i2p::client::ClientDestination& owner, uint16_t localPort = 0): 
+			StreamingDestination (i2p::client::ClientDestination& owner, uint16_t localPort = 0):
 				m_Owner (owner), m_LocalPort (localPort) {};
-			~StreamingDestination () {};	
+			~StreamingDestination () {};
 
 			void Start ();
 			void Stop ();
 
 			std::shared_ptr<Stream> CreateNewOutgoingStream (std::shared_ptr<const i2p::data::LeaseSet> remote, int port = 0);
-			void DeleteStream (std::shared_ptr<Stream> stream);			
+			void DeleteStream (std::shared_ptr<Stream> stream);
 			void SetAcceptor (const Acceptor& acceptor) { m_Acceptor = acceptor; };
 			void ResetAcceptor () { if (m_Acceptor) m_Acceptor (nullptr); m_Acceptor = nullptr; };
-			bool IsAcceptorSet () const { return m_Acceptor != nullptr; };	
+			bool IsAcceptorSet () const { return m_Acceptor != nullptr; };
 			i2p::client::ClientDestination& GetOwner () { return m_Owner; };
 			uint16_t GetLocalPort () const { return m_LocalPort; };
 
 			void HandleDataMessagePayload (const uint8_t * buf, size_t len);
 
-		private:		
-	
+		private:
+
 			void HandleNextPacket (Packet * packet);
 			std::shared_ptr<Stream> CreateNewIncomingStream ();
 
@@ -216,12 +216,12 @@ namespace stream
 			std::mutex m_StreamsMutex;
 			std::map<uint32_t, std::shared_ptr<Stream> > m_Streams;
 			Acceptor m_Acceptor;
-			
+
 		public:
 
 			// for HTTP only
 			const decltype(m_Streams)& GetStreams () const { return m_Streams; };
-	};		
+	};
 
 //-------------------------------------------------
 
@@ -231,16 +231,19 @@ namespace stream
 		if (!m_ReceiveQueue.empty ())
 		{
 			auto s = shared_from_this();
-			m_Service.post ([=](void) { s->HandleReceiveTimer (
-				boost::asio::error::make_error_code (boost::asio::error::operation_aborted),
-				buffer, handler); });
+			m_Service.post ([=](void)
+			{
+				s->HandleReceiveTimer (
+				    boost::asio::error::make_error_code (boost::asio::error::operation_aborted),
+				    buffer, handler);
+			});
 		}
 		else
 		{
 			m_ReceiveTimer.expires_from_now (boost::posix_time::seconds(timeout));
 			auto s = shared_from_this();
 			m_ReceiveTimer.async_wait ([=](const boost::system::error_code& ecode)
-				{ s->HandleReceiveTimer (ecode, buffer, handler); });
+			{ s->HandleReceiveTimer (ecode, buffer, handler); });
 		}
 	}
 
@@ -251,18 +254,18 @@ namespace stream
 		if (received > 0)
 			handler (boost::system::error_code (), received);
 		else if (ecode == boost::asio::error::operation_aborted)
-		{	
-			// timeout not expired	
+		{
+			// timeout not expired
 			if (m_Status == eStreamStatusReset)
 				handler (boost::asio::error::make_error_code (boost::asio::error::connection_reset), 0);
 			else
-				handler (boost::asio::error::make_error_code (boost::asio::error::operation_aborted), 0); 
-		}	
+				handler (boost::asio::error::make_error_code (boost::asio::error::operation_aborted), 0);
+		}
 		else
 			// timeout expired
 			handler (boost::asio::error::make_error_code (boost::asio::error::timed_out), received);
 	}
-}		
-}	
+}
+}
 
 #endif

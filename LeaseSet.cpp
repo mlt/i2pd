@@ -13,7 +13,7 @@ namespace i2p
 {
 namespace data
 {
-	
+
 	LeaseSet::LeaseSet (const uint8_t * buf, int len)
 	{
 		memcpy (m_Buffer, buf, len);
@@ -22,7 +22,7 @@ namespace data
 	}
 
 	LeaseSet::LeaseSet (const i2p::tunnel::TunnelPool& pool)
-	{	
+	{
 		// header
 		const i2p::data::LocalDestination * localDestination = pool.GetLocalDestination ();
 		if (!localDestination)
@@ -30,7 +30,7 @@ namespace data
 			m_BufferLen = 0;
 			LogPrint (eLogError, "Destination for local LeaseSet doesn't exist");
 			return;
-		}	
+		}
 		m_BufferLen = localDestination->GetIdentity ().ToBuffer (m_Buffer, MAX_LS_BUFFER_SIZE);
 		memcpy (m_Buffer + m_BufferLen, localDestination->GetEncryptionPublicKey (), 256);
 		m_BufferLen += 256;
@@ -41,9 +41,9 @@ namespace data
 		m_Buffer[m_BufferLen] = tunnels.size (); // num leases
 		m_BufferLen++;
 		// leases
-		CryptoPP::AutoSeededRandomPool rnd;	
+		CryptoPP::AutoSeededRandomPool rnd;
 		for (auto it: tunnels)
-		{	
+		{
 			memcpy (m_Buffer + m_BufferLen, it->GetNextIdentHash (), 32);
 			m_BufferLen += 32; // gateway id
 			htobe32buf (m_Buffer + m_BufferLen, it->GetNextTunnelID ());
@@ -56,22 +56,22 @@ namespace data
 		}
 		// signature
 		localDestination->Sign (m_Buffer, m_BufferLen, m_Buffer + m_BufferLen);
-		m_BufferLen += localDestination->GetIdentity ().GetSignatureLen (); 
+		m_BufferLen += localDestination->GetIdentity ().GetSignatureLen ();
 		LogPrint ("Local LeaseSet of ", tunnels.size (), " leases created");
 
 		ReadFromBuffer ();
 	}
 
 	void LeaseSet::Update (const uint8_t * buf, int len)
-	{	
+	{
 		m_Leases.clear ();
 		memcpy (m_Buffer, buf, len);
 		m_BufferLen = len;
 		ReadFromBuffer ();
 	}
-	
-	void LeaseSet::ReadFromBuffer ()	
-	{	
+
+	void LeaseSet::ReadFromBuffer ()
+	{
 		size_t size = m_Identity.FromBuffer (m_Buffer, m_BufferLen);
 		memcpy (m_EncryptionKey, m_Buffer + size, 256);
 		size += 256; // encryption key
@@ -99,14 +99,14 @@ namespace data
 				// if not found request it
 				LogPrint ("Lease's tunnel gateway not found. Requested");
 				netdb.RequestDestination (lease.tunnelGateway);
-			}	
-		}	
-		
+			}
+		}
+
 		// verify
 		if (!m_Identity.Verify (m_Buffer, leases - m_Buffer, leases))
 			LogPrint ("LeaseSet verification failed");
-	}				
-	
+	}
+
 	const std::vector<Lease> LeaseSet::GetNonExpiredLeases (bool withThreshold) const
 	{
 		auto ts = i2p::util::GetMillisecondsSinceEpoch ();
@@ -118,9 +118,9 @@ namespace data
 				endDate -= i2p::tunnel::TUNNEL_EXPIRATION_THRESHOLD*1000;
 			if (ts < endDate)
 				leases.push_back (it);
-		}	
-		return leases;	
-	}	
+		}
+		return leases;
+	}
 
 	bool LeaseSet::HasExpiredLeases () const
 	{
@@ -128,7 +128,7 @@ namespace data
 		for (auto& it: m_Leases)
 			if (ts >= it.endDate) return true;
 		return false;
-	}	
+	}
 
 	bool LeaseSet::HasNonExpiredLeases () const
 	{
@@ -136,6 +136,6 @@ namespace data
 		for (auto& it: m_Leases)
 			if (ts < it.endDate) return true;
 		return false;
-	}	
-}		
-}	
+	}
+}
+}

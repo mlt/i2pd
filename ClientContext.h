@@ -23,12 +23,12 @@ namespace client
 	const char I2P_CLIENT_TUNNEL_PORT[] = "port";
 	const char I2P_CLIENT_TUNNEL_DESTINATION[] = "destination";
 	const char I2P_CLIENT_TUNNEL_KEYS[] = "keys";
-	const char I2P_CLIENT_TUNNEL_DESTINATION_PORT[] = "destinationport";	
-	const char I2P_SERVER_TUNNEL_HOST[] = "host";	
+	const char I2P_CLIENT_TUNNEL_DESTINATION_PORT[] = "destinationport";
+	const char I2P_SERVER_TUNNEL_HOST[] = "host";
 	const char I2P_SERVER_TUNNEL_PORT[] = "port";
 	const char I2P_SERVER_TUNNEL_KEYS[] = "keys";
 	const char I2P_SERVER_TUNNEL_INPORT[] = "inport";
-	const char I2P_SERVER_TUNNEL_ACCESS_LIST[] = "accesslist";		
+	const char I2P_SERVER_TUNNEL_ACCESS_LIST[] = "accesslist";
 	const char TUNNELS_CONFIG_FILENAME[] = "tunnels.cfg";
 
 	class ClientContext
@@ -43,25 +43,25 @@ namespace client
 
 			std::shared_ptr<ClientDestination> GetSharedLocalDestination () const { return m_SharedLocalDestination; };
 			std::shared_ptr<ClientDestination> CreateNewLocalDestination (bool isPublic = false, i2p::data::SigningKeyType sigType = i2p::data::SIGNING_KEY_TYPE_DSA_SHA1,
-			    const std::map<std::string, std::string> * params = nullptr); // transient
-			std::shared_ptr<ClientDestination> CreateNewLocalDestination (const i2p::data::PrivateKeys& keys, bool isPublic = true, 
-				const std::map<std::string, std::string> * params = nullptr);
+			        const std::map<std::string, std::string> * params = nullptr); // transient
+			std::shared_ptr<ClientDestination> CreateNewLocalDestination (const i2p::data::PrivateKeys& keys, bool isPublic = true,
+			        const std::map<std::string, std::string> * params = nullptr);
 			void DeleteLocalDestination (std::shared_ptr<ClientDestination> destination);
-			std::shared_ptr<ClientDestination> FindLocalDestination (const i2p::data::IdentHash& destination) const;		
+			std::shared_ptr<ClientDestination> FindLocalDestination (const i2p::data::IdentHash& destination) const;
 			std::shared_ptr<ClientDestination> LoadLocalDestination (const std::string& filename, bool isPublic);
 
 			AddressBook& GetAddressBook () { return m_AddressBook; };
 			const SAMBridge * GetSAMBridge () const { return m_SamBridge; };
-		
+
 		private:
 
 			void ReadTunnels ();
-	
+
 		private:
 
 			std::mutex m_DestinationsMutex;
 			std::map<i2p::data::IdentHash, std::shared_ptr<ClientDestination> > m_Destinations;
-			std::shared_ptr<ClientDestination>  m_SharedLocalDestination;	
+			std::shared_ptr<ClientDestination>  m_SharedLocalDestination;
 
 			AddressBook m_AddressBook;
 
@@ -77,9 +77,9 @@ namespace client
 			// for HTTP
 			const decltype(m_Destinations)& GetDestinations () const { return m_Destinations; };
 	};
-	
-	extern ClientContext context;	
-}		
-}	
+
+	extern ClientContext context;
+}
+}
 
 #endif

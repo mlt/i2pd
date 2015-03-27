@@ -20,8 +20,8 @@ namespace i2p
 {
 namespace transport
 {
-	const int SSU_KEEP_ALIVE_INTERVAL = 30; // 30 seconds	
-	const int SSU_PEER_TEST_TIMEOUT = 60; // 60 seconds		
+	const int SSU_KEEP_ALIVE_INTERVAL = 30; // 30 seconds
+	const int SSU_PEER_TEST_TIMEOUT = 60; // 60 seconds
 	const int SSU_TO_INTRODUCER_SESSION_DURATION = 3600; // 1 hour
 	const size_t SSU_MAX_NUM_INTRODUCERS = 3;
 
@@ -30,8 +30,8 @@ namespace transport
 		i2p::crypto::AESAlignedBuffer<1500> buf;
 		boost::asio::ip::udp::endpoint from;
 		size_t len;
-	};	
-	
+	};
+
 	class SSUServer
 	{
 		public:
@@ -45,11 +45,11 @@ namespace transport
 			std::shared_ptr<SSUSession> FindSession (const boost::asio::ip::udp::endpoint& e) const;
 			std::shared_ptr<SSUSession> GetRandomEstablishedSession (std::shared_ptr<const SSUSession> excluded);
 			void DeleteSession (std::shared_ptr<SSUSession> session);
-			void DeleteAllSessions ();			
+			void DeleteAllSessions ();
 
 			boost::asio::io_service& GetService () { return m_Service; };
 			boost::asio::io_service& GetServiceV6 () { return m_ServiceV6; };
-			const boost::asio::ip::udp::endpoint& GetEndpoint () const { return m_Endpoint; };			
+			const boost::asio::ip::udp::endpoint& GetEndpoint () const { return m_Endpoint; };
 			void Send (const uint8_t * buf, size_t len, const boost::asio::ip::udp::endpoint& to);
 			void AddRelay (uint32_t tag, const boost::asio::ip::udp::endpoint& relay);
 			std::shared_ptr<SSUSession> FindRelaySession (uint32_t tag);
@@ -73,8 +73,8 @@ namespace transport
 
 			template<typename Filter>
 			std::shared_ptr<SSUSession> GetRandomSession (Filter filter);
-			
-			std::set<SSUSession *> FindIntroducers (int maxNumIntroducers);	
+
+			std::set<SSUSession *> FindIntroducers (int maxNumIntroducers);
 			void ScheduleIntroducersUpdateTimer ();
 			void HandleIntroducersUpdateTimer (const boost::system::error_code& ecode);
 
@@ -88,10 +88,10 @@ namespace transport
 				uint64_t creationTime;
 				PeerTestParticipant role;
 				std::shared_ptr<SSUSession> session; // for Bob to Alice
-			};	
-			
+			};
+
 			bool m_IsRunning;
-			std::thread * m_Thread, * m_ThreadV6, * m_ReceiversThread;	
+			std::thread * m_Thread, * m_ThreadV6, * m_ReceiversThread;
 			boost::asio::io_service m_Service, m_ServiceV6, m_ReceiversService;
 			boost::asio::io_service::work m_Work, m_WorkV6, m_ReceiversWork;
 			boost::asio::ip::udp::endpoint m_Endpoint, m_EndpointV6;

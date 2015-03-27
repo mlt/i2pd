@@ -20,7 +20,7 @@ namespace transport
 	const size_t SSU_MTU_V4 = 1484;
 	const size_t SSU_MTU_V6 = 1472;
 	const size_t IPV4_HEADER_SIZE = 20;
-	const size_t IPV6_HEADER_SIZE = 40;	
+	const size_t IPV6_HEADER_SIZE = 40;
 	const size_t UDP_HEADER_SIZE = 8;
 	const size_t SSU_V4_MAX_PACKET_SIZE = SSU_MTU_V4 - IPV4_HEADER_SIZE - UDP_HEADER_SIZE; // 1456
 	const size_t SSU_V6_MAX_PACKET_SIZE = SSU_MTU_V6 - IPV6_HEADER_SIZE - UDP_HEADER_SIZE; // 1424
@@ -35,7 +35,7 @@ namespace transport
 	const uint8_t DATA_FLAG_REQUEST_PREVIOUS_ACKS = 0x08;
 	const uint8_t DATA_FLAG_EXPLICIT_CONGESTION_NOTIFICATION = 0x10;
 	const uint8_t DATA_FLAG_ACK_BITFIELDS_INCLUDED = 0x40;
-	const uint8_t DATA_FLAG_EXPLICIT_ACKS_INCLUDED = 0x80;	
+	const uint8_t DATA_FLAG_EXPLICIT_ACKS_INCLUDED = 0x80;
 
 	struct Fragment
 	{
@@ -45,28 +45,28 @@ namespace transport
 		uint8_t buf[SSU_V4_MAX_PACKET_SIZE + 18]; // use biggest
 
 		Fragment () = default;
-		Fragment (int n, const uint8_t * b, int l, bool last): 
-			fragmentNum (n), len (l), isLast (last) { memcpy (buf, b, len); };		
-	};	
+		Fragment (int n, const uint8_t * b, int l, bool last):
+			fragmentNum (n), len (l), isLast (last) { memcpy (buf, b, len); };
+	};
 
 	struct FragmentCmp
 	{
 		bool operator() (const std::unique_ptr<Fragment>& f1, const std::unique_ptr<Fragment>& f2) const
-  		{	
-			return f1->fragmentNum < f2->fragmentNum; 
+		{
+			return f1->fragmentNum < f2->fragmentNum;
 		};
-	};	
-	
+	};
+
 	struct IncompleteMessage
 	{
 		I2NPMessage * msg;
-		int nextFragmentNum;	
+		int nextFragmentNum;
 		uint32_t lastFragmentInsertTime; // in seconds
 		std::set<std::unique_ptr<Fragment>, FragmentCmp> savedFragments;
-		
+
 		IncompleteMessage (I2NPMessage * m): msg (m), nextFragmentNum (0), lastFragmentInsertTime (0) {};
 		~IncompleteMessage () { if (msg) DeleteI2NPMessage (msg); };
-		void AttachNextFragment (const uint8_t * fragment, size_t fragmentSize);	
+		void AttachNextFragment (const uint8_t * fragment, size_t fragmentSize);
 	};
 
 	struct SentMessage
@@ -74,8 +74,8 @@ namespace transport
 		std::vector<std::unique_ptr<Fragment> > fragments;
 		uint32_t nextResendTime; // in seconds
 		int numResends;
-	};	
-	
+	};
+
 	class SSUSession;
 	class SSUData
 	{
@@ -85,8 +85,8 @@ namespace transport
 			~SSUData ();
 
 			void Start ();
-			void Stop ();	
-			
+			void Stop ();
+
 			void ProcessMessage (uint8_t * buf, size_t len);
 			void FlushReceivedMessage ();
 			void Send (i2p::I2NPMessage * msg);
@@ -99,20 +99,20 @@ namespace transport
 			void SendFragmentAck (uint32_t msgID, int fragmentNum);
 			void ProcessAcks (uint8_t *& buf, uint8_t flag);
 			void ProcessFragments (uint8_t * buf);
-			void ProcessSentMessageAck (uint32_t msgID);	
+			void ProcessSentMessageAck (uint32_t msgID);
 
 			void ScheduleResend ();
-			void HandleResendTimer (const boost::system::error_code& ecode);	
+			void HandleResendTimer (const boost::system::error_code& ecode);
 
 			void ScheduleDecay ();
-			void HandleDecayTimer (const boost::system::error_code& ecode);	
+			void HandleDecayTimer (const boost::system::error_code& ecode);
 
 			void ScheduleIncompleteMessagesCleanup ();
-			void HandleIncompleteMessagesCleanupTimer (const boost::system::error_code& ecode);	
-			
-			void AdjustPacketSize (const i2p::data::RouterInfo& remoteRouter);	
-			
-		private:	
+			void HandleIncompleteMessagesCleanupTimer (const boost::system::error_code& ecode);
+
+			void AdjustPacketSize (const i2p::data::RouterInfo& remoteRouter);
+
+		private:
 
 			SSUSession& m_Session;
 			std::map<uint32_t, std::unique_ptr<IncompleteMessage> > m_IncompleteMessages;
@@ -121,7 +121,7 @@ namespace transport
 			boost::asio::deadline_timer m_ResendTimer, m_DecayTimer, m_IncompleteMessagesCleanupTimer;
 			int m_MaxPacketSize, m_PacketSize;
 			i2p::I2NPMessagesHandler m_Handler;
-	};	
+	};
 }
 }
 

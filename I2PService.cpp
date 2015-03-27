@@ -12,16 +12,17 @@ namespace client
 
 	I2PService::I2PService (std::shared_ptr<ClientDestination> localDestination):
 		m_LocalDestination (localDestination ? localDestination :
-					i2p::client::context.CreateNewLocalDestination (false, I2P_SERVICE_DEFAULT_KEY_TYPE))
+		                    i2p::client::context.CreateNewLocalDestination (false, I2P_SERVICE_DEFAULT_KEY_TYPE))
 	{
 	}
-	
+
 	I2PService::I2PService (i2p::data::SigningKeyType kt):
 		m_LocalDestination (i2p::client::context.CreateNewLocalDestination (false, kt))
 	{
 	}
-	
-	void I2PService::CreateStream (StreamRequestComplete streamRequestComplete, const std::string& dest, int port) {
+
+	void I2PService::CreateStream (StreamRequestComplete streamRequestComplete, const std::string& dest, int port)
+	{
 		assert(streamRequestComplete);
 		i2p::data::IdentHash identHash;
 		if (i2p::client::context.GetAddressBook ().GetIdentHash (dest, identHash))
@@ -50,7 +51,7 @@ namespace client
 	{
 		auto newSocket = new boost::asio::ip::tcp::socket (GetService ());
 		m_Acceptor.async_accept (*newSocket, std::bind (&TCPIPAcceptor::HandleAccept, this,
-			std::placeholders::_1, newSocket));
+		                         std::placeholders::_1, newSocket));
 	}
 
 	void TCPIPAcceptor::HandleAccept (const boost::system::error_code& ecode, boost::asio::ip::tcp::socket * socket)
@@ -59,10 +60,13 @@ namespace client
 		{
 			LogPrint(eLogDebug,"--- ",GetName()," accepted");
 			auto handler = CreateHandler(socket);
-			if (handler) {
+			if (handler)
+			{
 				AddHandler(handler);
 				handler->Handle();
-			} else {
+			}
+			else
+			{
 				socket->close();
 				delete socket;
 			}

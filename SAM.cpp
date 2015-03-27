@@ -15,7 +15,7 @@ namespace i2p
 {
 namespace client
 {
-	SAMSocket::SAMSocket (SAMBridge& owner): 
+	SAMSocket::SAMSocket (SAMBridge& owner):
 		m_Owner (owner), m_Socket (m_Owner.GetService ()), m_Timer (m_Owner.GetService ()),
 		m_SocketType (eSAMSocketTypeUnknown), m_IsSilent (false), m_Stream (nullptr),
 		m_Session (nullptr)
@@ -25,43 +25,43 @@ namespace client
 	SAMSocket::~SAMSocket ()
 	{
 		Terminate ();
-	}	
+	}
 
 	void SAMSocket::CloseStream ()
 	{
 		if (m_Stream)
-		{	
+		{
 			m_Stream->Close ();
 			m_Stream.reset ();
-		}	
-	}	
-		
+		}
+	}
+
 	void SAMSocket::Terminate ()
 	{
 		CloseStream ();
-		
+
 		switch (m_SocketType)
 		{
-			case eSAMSocketTypeSession:
-				m_Owner.CloseSession (m_ID);
+		case eSAMSocketTypeSession:
+			m_Owner.CloseSession (m_ID);
 			break;
-			case eSAMSocketTypeStream:
+		case eSAMSocketTypeStream:
+		{
+			if (m_Session)
+				m_Session->sockets.remove (shared_from_this ());
+			break;
+		}
+		case eSAMSocketTypeAcceptor:
+		{
+			if (m_Session)
 			{
-				if (m_Session)
-					m_Session->sockets.remove (shared_from_this ());
-				break;
+				m_Session->sockets.remove (shared_from_this ());
+				m_Session->localDestination->StopAcceptingStreams ();
 			}
-			case eSAMSocketTypeAcceptor:
-			{
-				if (m_Session)
-				{
-					m_Session->sockets.remove (shared_from_this ());
-					m_Session->localDestination->StopAcceptingStreams ();
-				}
-				break;
-			}
-			default:
-				;
+			break;
+		}
+		default:
+			;
 		}
 		m_SocketType = eSAMSocketTypeTerminated;
 		m_Socket.close ();
@@ -69,28 +69,28 @@ namespace client
 
 	void SAMSocket::ReceiveHandshake ()
 	{
-		m_Socket.async_read_some (boost::asio::buffer(m_Buffer, SAM_SOCKET_BUFFER_SIZE),                
-			std::bind(&SAMSocket::HandleHandshakeReceived, shared_from_this (), 
-			std::placeholders::_1, std::placeholders::_2));
+		m_Socket.async_read_some (boost::asio::buffer(m_Buffer, SAM_SOCKET_BUFFER_SIZE),
+		                          std::bind(&SAMSocket::HandleHandshakeReceived, shared_from_this (),
+		                                    std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void SAMSocket::HandleHandshakeReceived (const boost::system::error_code& ecode, std::size_t bytes_transferred)
 	{
 		if (ecode)
-        {
+		{
 			LogPrint ("SAM handshake read error: ", ecode.message ());
 			if (ecode != boost::asio::error::operation_aborted)
 				Terminate ();
 		}
 		else
-		{	
+		{
 			m_Buffer[bytes_transferred] = 0;
 			LogPrint ("SAM handshake ", m_Buffer);
 			char * separator = strchr (m_Buffer, ' ');
 			if (separator)
 			{
-				separator = strchr (separator + 1, ' ');	
-				if (separator) 
+				separator = strchr (separator + 1, ' ');
+				if (separator)
 					*separator = 0;
 			}
 
@@ -112,13 +112,13 @@ namespace client
 				{
 #ifdef _MSC_VER
 					size_t l = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_HANDSHAKE_REPLY, version.c_str ());
-#else		
+#else
 					size_t l = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_HANDSHAKE_REPLY, version.c_str ());
 #endif
 					boost::asio::async_write (m_Socket, boost::asio::buffer (m_Buffer, l), boost::asio::transfer_all (),
-        				std::bind(&SAMSocket::HandleHandshakeReplySent, shared_from_this (), 
-						std::placeholders::_1, std::placeholders::_2));
-				}	
+					                          std::bind(&SAMSocket::HandleHandshakeReplySent, shared_from_this (),
+					                                    std::placeholders::_1, std::placeholders::_2));
+				}
 				else
 					SendMessageReply (SAM_HANDSHAKE_I2P_ERROR, strlen (SAM_HANDSHAKE_I2P_ERROR), true);
 			}
@@ -133,38 +133,38 @@ namespace client
 	void SAMSocket::HandleHandshakeReplySent (const boost::system::error_code& ecode, std::size_t bytes_transferred)
 	{
 		if (ecode)
-        {
+		{
 			LogPrint ("SAM handshake reply send error: ", ecode.message ());
 			if (ecode != boost::asio::error::operation_aborted)
 				Terminate ();
 		}
 		else
 		{
-			m_Socket.async_read_some (boost::asio::buffer(m_Buffer, SAM_SOCKET_BUFFER_SIZE),                
-				std::bind(&SAMSocket::HandleMessage, shared_from_this (), 
-				std::placeholders::_1, std::placeholders::_2));	
-		}	
+			m_Socket.async_read_some (boost::asio::buffer(m_Buffer, SAM_SOCKET_BUFFER_SIZE),
+			                          std::bind(&SAMSocket::HandleMessage, shared_from_this (),
+			                                    std::placeholders::_1, std::placeholders::_2));
+		}
 	}
 
 	void SAMSocket::SendMessageReply (const char * msg, size_t len, bool close)
 	{
-		if (!m_IsSilent) 
+		if (!m_IsSilent)
 			boost::asio::async_write (m_Socket, boost::asio::buffer (msg, len), boost::asio::transfer_all (),
-				std::bind(&SAMSocket::HandleMessageReplySent, shared_from_this (), 
-				std::placeholders::_1, std::placeholders::_2, close));
+			                          std::bind(&SAMSocket::HandleMessageReplySent, shared_from_this (),
+			                                    std::placeholders::_1, std::placeholders::_2, close));
 		else
 		{
 			if (close)
 				Terminate ();
 			else
-				Receive ();	
-		}		
+				Receive ();
+		}
 	}
 
 	void SAMSocket::HandleMessageReplySent (const boost::system::error_code& ecode, std::size_t bytes_transferred, bool close)
 	{
 		if (ecode)
-        {
+		{
 			LogPrint ("SAM reply send error: ", ecode.message ());
 			if (ecode != boost::asio::error::operation_aborted)
 				Terminate ();
@@ -174,14 +174,14 @@ namespace client
 			if (close)
 				Terminate ();
 			else
-				Receive ();	
-		}	
+				Receive ();
+		}
 	}
 
 	void SAMSocket::HandleMessage (const boost::system::error_code& ecode, std::size_t bytes_transferred)
 	{
 		if (ecode)
-        {
+		{
 			LogPrint ("SAM read error: ", ecode.message ());
 			if (ecode != boost::asio::error::operation_aborted)
 				Terminate ();
@@ -196,8 +196,8 @@ namespace client
 				char * separator = strchr (m_Buffer, ' ');
 				if (separator)
 				{
-					separator = strchr (separator + 1, ' ');	
-					if (separator) 
+					separator = strchr (separator + 1, ' ');
+					if (separator)
 						*separator = 0;
 					else
 						separator = eol;
@@ -214,9 +214,9 @@ namespace client
 						ProcessDestGenerate ();
 					else if (!strcmp (m_Buffer, SAM_NAMING_LOOKUP))
 						ProcessNamingLookup (separator + 1, bytes_transferred - (separator - m_Buffer) - 1);
-					else		
-					{	
-						LogPrint ("SAM unexpected message ", m_Buffer);		
+					else
+					{
+						LogPrint ("SAM unexpected message ", m_Buffer);
 						Terminate ();
 					}
 				}
@@ -227,7 +227,7 @@ namespace client
 				}
 			}
 			else
-			{	
+			{
 				LogPrint ("SAM malformed message ", m_Buffer);
 				Terminate ();
 			}
@@ -239,10 +239,10 @@ namespace client
 		LogPrint ("SAM session create: ", buf);
 		std::map<std::string, std::string> params;
 		ExtractParams (buf, params);
-		std::string& style = params[SAM_PARAM_STYLE]; 
+		std::string& style = params[SAM_PARAM_STYLE];
 		std::string& id = params[SAM_PARAM_ID];
 		std::string& destination = params[SAM_PARAM_DESTINATION];
-		m_ID = id; 
+		m_ID = id;
 		if (m_Owner.FindSession (id))
 		{
 			// session exists
@@ -250,16 +250,16 @@ namespace client
 			return;
 		}
 
-		// create destination	
-		m_Session = m_Owner.CreateSession (id, destination == SAM_VALUE_TRANSIENT ? "" : destination, &params); 
+		// create destination
+		m_Session = m_Owner.CreateSession (id, destination == SAM_VALUE_TRANSIENT ? "" : destination, &params);
 		if (m_Session)
 		{
 			m_SocketType = eSAMSocketTypeSession;
 			if (style == SAM_VALUE_DATAGRAM)
 			{
 				auto dest = m_Session->localDestination->CreateDatagramDestination ();
-				dest->SetReceiver (std::bind (&SAMSocket::HandleI2PDatagramReceive, shared_from_this (), 
-					std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+				dest->SetReceiver (std::bind (&SAMSocket::HandleI2PDatagramReceive, shared_from_this (),
+				                              std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 			}
 
 			if (m_Session->localDestination->IsReady ())
@@ -268,7 +268,7 @@ namespace client
 			{
 				m_Timer.expires_from_now (boost::posix_time::seconds(SAM_SESSION_READINESS_CHECK_INTERVAL));
 				m_Timer.async_wait (std::bind (&SAMSocket::HandleSessionReadinessCheckTimer,
-					shared_from_this (), std::placeholders::_1));	
+				                               shared_from_this (), std::placeholders::_1));
 			}
 		}
 		else
@@ -285,8 +285,8 @@ namespace client
 			{
 				m_Timer.expires_from_now (boost::posix_time::seconds(SAM_SESSION_READINESS_CHECK_INTERVAL));
 				m_Timer.async_wait (std::bind (&SAMSocket::HandleSessionReadinessCheckTimer,
-					shared_from_this (), std::placeholders::_1));
-			}	
+				                               shared_from_this (), std::placeholders::_1));
+			}
 		}
 	}
 
@@ -299,7 +299,7 @@ namespace client
 		priv[l1] = 0;
 #ifdef _MSC_VER
 		size_t l2 = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_SESSION_CREATE_REPLY_OK, priv);
-#else		
+#else
 		size_t l2 = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_SESSION_CREATE_REPLY_OK, priv);
 #endif
 		SendMessageReply (m_Buffer, l2, false);
@@ -313,7 +313,7 @@ namespace client
 		std::string& id = params[SAM_PARAM_ID];
 		std::string& destination = params[SAM_PARAM_DESTINATION];
 		std::string& silent = params[SAM_PARAM_SILENT];
-		if (silent == SAM_VALUE_TRUE) m_IsSilent = true;	
+		if (silent == SAM_VALUE_TRUE) m_IsSilent = true;
 		m_ID = id;
 		m_Session = m_Owner.FindSession (id);
 		if (m_Session)
@@ -326,13 +326,13 @@ namespace client
 				Connect (leaseSet);
 			else
 			{
-				m_Session->localDestination->RequestDestination (dest.GetIdentHash (), 
-					std::bind (&SAMSocket::HandleConnectLeaseSetRequestComplete,
-					shared_from_this (), std::placeholders::_1, dest.GetIdentHash ()));	
+				m_Session->localDestination->RequestDestination (dest.GetIdentHash (),
+				        std::bind (&SAMSocket::HandleConnectLeaseSetRequestComplete,
+				                   shared_from_this (), std::placeholders::_1, dest.GetIdentHash ()));
 			}
 		}
-		else	
-			SendMessageReply (SAM_STREAM_STATUS_INVALID_ID, strlen(SAM_STREAM_STATUS_INVALID_ID), true);		
+		else
+			SendMessageReply (SAM_STREAM_STATUS_INVALID_ID, strlen(SAM_STREAM_STATUS_INVALID_ID), true);
 	}
 
 	void SAMSocket::Connect (std::shared_ptr<const i2p::data::LeaseSet> remote)
@@ -341,14 +341,14 @@ namespace client
 		m_Session->sockets.push_back (shared_from_this ());
 		m_Stream = m_Session->localDestination->CreateStream (remote);
 		m_Stream->Send ((uint8_t *)m_Buffer, 0); // connect
-		I2PReceive ();			
+		I2PReceive ();
 		SendMessageReply (SAM_STREAM_STATUS_OK, strlen(SAM_STREAM_STATUS_OK), false);
 	}
 
 	void SAMSocket::HandleConnectLeaseSetRequestComplete (bool success, i2p::data::IdentHash ident)
 	{
 		std::shared_ptr<const i2p::data::LeaseSet> leaseSet;
-		if (success) 
+		if (success)
 			leaseSet = m_Session->localDestination->FindLeaseSet (ident);
 		if (leaseSet)
 			Connect (leaseSet);
@@ -366,7 +366,7 @@ namespace client
 		ExtractParams (buf, params);
 		std::string& id = params[SAM_PARAM_ID];
 		std::string& silent = params[SAM_PARAM_SILENT];
-		if (silent == SAM_VALUE_TRUE) m_IsSilent = true;	
+		if (silent == SAM_VALUE_TRUE) m_IsSilent = true;
 		m_ID = id;
 		m_Session = m_Owner.FindSession (id);
 		if (m_Session)
@@ -380,7 +380,7 @@ namespace client
 			}
 			else
 				SendMessageReply (SAM_STREAM_STATUS_I2P_ERROR, strlen(SAM_STREAM_STATUS_I2P_ERROR), true);
-		}	
+		}
 		else
 			SendMessageReply (SAM_STREAM_STATUS_INVALID_ID, strlen(SAM_STREAM_STATUS_INVALID_ID), true);
 	}
@@ -392,9 +392,9 @@ namespace client
 		ExtractParams (buf, params);
 		size_t size = boost::lexical_cast<int>(params[SAM_PARAM_SIZE]);
 		if (size < len)
-		{	
+		{
 			if (m_Session)
-			{	
+			{
 				auto d = m_Session->localDestination->GetDatagramDestination ();
 				if (d)
 				{
@@ -407,23 +407,23 @@ namespace client
 			}
 			else
 				LogPrint (eLogError, "SAM session is not created from DATAGRAM SEND");
-		}	
+		}
 		else
 			LogPrint (eLogError, "SAM datagram size ", size, " exceeds buffer");
 		// since it's SAM v1 reply is not expected
 		Receive ();
-	}	
-		
+	}
+
 	void SAMSocket::ProcessDestGenerate ()
 	{
 		LogPrint ("SAM dest generate");
 		auto keys = i2p::data::PrivateKeys::CreateRandomKeys ();
 #ifdef _MSC_VER
-		size_t len = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_DEST_REPLY, 
-			keys.GetPublic ().ToBase64 ().c_str (), keys.ToBase64 ().c_str ());	
-#else			                        
-		size_t len = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_DEST_REPLY, 
-		    keys.GetPublic ().ToBase64 ().c_str (), keys.ToBase64 ().c_str ());
+		size_t len = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_DEST_REPLY,
+		                        keys.GetPublic ().ToBase64 ().c_str (), keys.ToBase64 ().c_str ());
+#else
+		size_t len = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_DEST_REPLY,
+		                       keys.GetPublic ().ToBase64 ().c_str (), keys.ToBase64 ().c_str ());
 #endif
 		SendMessageReply (m_Buffer, len, false);
 	}
@@ -441,58 +441,58 @@ namespace client
 		else if (context.GetAddressBook ().GetAddress (name, identity))
 			SendNamingLookupReply (identity);
 		else if (m_Session && m_Session->localDestination &&
-			context.GetAddressBook ().GetIdentHash (name, ident))
+		         context.GetAddressBook ().GetIdentHash (name, ident))
 		{
 			auto leaseSet = m_Session->localDestination->FindLeaseSet (ident);
 			if (leaseSet)
 				SendNamingLookupReply (leaseSet->GetIdentity ());
 			else
-				m_Session->localDestination->RequestDestination (ident, 
-					std::bind (&SAMSocket::HandleNamingLookupLeaseSetRequestComplete,
-					shared_from_this (), std::placeholders::_1, ident));	
-		}	
-		else 
+				m_Session->localDestination->RequestDestination (ident,
+				        std::bind (&SAMSocket::HandleNamingLookupLeaseSetRequestComplete,
+				                   shared_from_this (), std::placeholders::_1, ident));
+		}
+		else
 		{
 			LogPrint ("SAM naming failed. Unknown address ", name);
 #ifdef _MSC_VER
 			size_t len = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY_INVALID_KEY, name.c_str());
-#else				
+#else
 			size_t len = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY_INVALID_KEY, name.c_str());
 #endif
 			SendMessageReply (m_Buffer, len, false);
 		}
-	}	
+	}
 
 	void  SAMSocket::HandleNamingLookupLeaseSetRequestComplete (bool success, i2p::data::IdentHash ident)
 	{
 		std::shared_ptr<const i2p::data::LeaseSet> leaseSet;
-		if (success) 
+		if (success)
 			leaseSet = m_Session->localDestination->FindLeaseSet (ident);
 		if (leaseSet)
-		{	
+		{
 			context.GetAddressBook ().InsertAddress (leaseSet->GetIdentity ());
 			SendNamingLookupReply (leaseSet->GetIdentity ());
-		}	
+		}
 		else
 		{
 			LogPrint (eLogInfo, "SAM naming lookup failed. LeaseSet for ", ident.ToBase32 (), " not found");
 #ifdef _MSC_VER
-			size_t len = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY_INVALID_KEY, 
-				context.GetAddressBook ().ToAddress (ident).c_str());
-#else				
+			size_t len = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY_INVALID_KEY,
+			                        context.GetAddressBook ().ToAddress (ident).c_str());
+#else
 			size_t len = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY_INVALID_KEY,
-				context.GetAddressBook ().ToAddress (ident).c_str());
+			                       context.GetAddressBook ().ToAddress (ident).c_str());
 #endif
 			SendMessageReply (m_Buffer, len, false);
 		}
-	}	
-		
+	}
+
 	void SAMSocket::SendNamingLookupReply (const i2p::data::IdentityEx& identity)
 	{
 		auto base64 = identity.ToBase64 ();
 #ifdef _MSC_VER
-		size_t l = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY, base64.c_str ()); 	
-#else			
+		size_t l = sprintf_s (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY, base64.c_str ());
+#else
 		size_t l = snprintf (m_Buffer, SAM_SOCKET_BUFFER_SIZE, SAM_NAMING_REPLY, base64.c_str ());
 #endif
 		SendMessageReply (m_Buffer, l, false);
@@ -500,7 +500,7 @@ namespace client
 
 	void SAMSocket::ExtractParams (char * buf, std::map<std::string, std::string>& params)
 	{
-		char * separator;	
+		char * separator;
 		do
 		{
 			separator = strchr (buf, ' ');
@@ -511,23 +511,23 @@ namespace client
 				*value = 0;
 				value++;
 				params[buf] = value;
-			}	
+			}
 			buf = separator + 1;
 		}
 		while (separator);
-	}	
+	}
 
 	void SAMSocket::Receive ()
 	{
-		m_Socket.async_read_some (boost::asio::buffer(m_Buffer, SAM_SOCKET_BUFFER_SIZE),                
-			std::bind((m_SocketType == eSAMSocketTypeStream) ? &SAMSocket::HandleReceived : &SAMSocket::HandleMessage,
-			shared_from_this (), std::placeholders::_1, std::placeholders::_2));
+		m_Socket.async_read_some (boost::asio::buffer(m_Buffer, SAM_SOCKET_BUFFER_SIZE),
+		                          std::bind((m_SocketType == eSAMSocketTypeStream) ? &SAMSocket::HandleReceived : &SAMSocket::HandleMessage,
+		                                    shared_from_this (), std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void SAMSocket::HandleReceived (const boost::system::error_code& ecode, std::size_t bytes_transferred)
 	{
 		if (ecode)
-        {
+		{
 			LogPrint ("SAM read error: ", ecode.message ());
 			if (ecode != boost::asio::error::operation_aborted)
 				Terminate ();
@@ -544,10 +544,10 @@ namespace client
 	{
 		if (m_Stream)
 			m_Stream->AsyncReceive (boost::asio::buffer (m_StreamBuffer, SAM_SOCKET_BUFFER_SIZE),
-				std::bind (&SAMSocket::HandleI2PReceive, shared_from_this (),
-					std::placeholders::_1, std::placeholders::_2),
-				SAM_SOCKET_CONNECTION_MAX_IDLE);
-	}	
+			                        std::bind (&SAMSocket::HandleI2PReceive, shared_from_this (),
+			                                   std::placeholders::_1, std::placeholders::_2),
+			                        SAM_SOCKET_CONNECTION_MAX_IDLE);
+	}
 
 	void SAMSocket::HandleI2PReceive (const boost::system::error_code& ecode, std::size_t bytes_transferred)
 	{
@@ -560,7 +560,7 @@ namespace client
 		else
 		{
 			boost::asio::async_write (m_Socket, boost::asio::buffer (m_StreamBuffer, bytes_transferred),
-        		std::bind (&SAMSocket::HandleWriteI2PData, shared_from_this (), std::placeholders::_1));
+			                          std::bind (&SAMSocket::HandleWriteI2PData, shared_from_this (), std::placeholders::_1));
 		}
 	}
 
@@ -584,8 +584,8 @@ namespace client
 			m_Stream = stream;
 			context.GetAddressBook ().InsertAddress (stream->GetRemoteIdentity ());
 			auto session = m_Owner.FindSession (m_ID);
-			if (session)	
-				session->localDestination->StopAcceptingStreams ();	
+			if (session)
+				session->localDestination->StopAcceptingStreams ();
 			m_SocketType = eSAMSocketTypeStream;
 			if (!m_IsSilent)
 			{
@@ -595,27 +595,27 @@ namespace client
 				size_t l1 = i2p::data::ByteStreamToBase64 (ident, l, (char *)m_StreamBuffer, SAM_SOCKET_BUFFER_SIZE);
 				m_StreamBuffer[l1] = '\n';
 				HandleI2PReceive (boost::system::error_code (), l1 +1); // we send identity like it has been received from stream
-			}	
+			}
 			else
 				I2PReceive ();
 		}
 		else
 			LogPrint (eLogInfo, "SAM I2P acceptor has been reset");
-	}	
+	}
 
 	void SAMSocket::HandleI2PDatagramReceive (const i2p::data::IdentityEx& from, uint16_t fromPort, uint16_t toPort, const uint8_t * buf, size_t len)
 	{
 		auto base64 = from.ToBase64 ();
 #ifdef _MSC_VER
-		size_t l = sprintf_s ((char *)m_StreamBuffer, SAM_SOCKET_BUFFER_SIZE, SAM_DATAGRAM_RECEIVED, base64.c_str (), len); 	
-#else			
-		size_t l = snprintf ((char *)m_StreamBuffer, SAM_SOCKET_BUFFER_SIZE, SAM_DATAGRAM_RECEIVED, base64.c_str (), len); 	
+		size_t l = sprintf_s ((char *)m_StreamBuffer, SAM_SOCKET_BUFFER_SIZE, SAM_DATAGRAM_RECEIVED, base64.c_str (), len);
+#else
+		size_t l = snprintf ((char *)m_StreamBuffer, SAM_SOCKET_BUFFER_SIZE, SAM_DATAGRAM_RECEIVED, base64.c_str (), len);
 #endif
-		if (len < SAM_SOCKET_BUFFER_SIZE - l)	
-		{	
+		if (len < SAM_SOCKET_BUFFER_SIZE - l)
+		{
 			memcpy (m_StreamBuffer + l, buf, len);
 			boost::asio::async_write (m_Socket, boost::asio::buffer (m_StreamBuffer, len + l),
-        		std::bind (&SAMSocket::HandleWriteI2PData, shared_from_this (), std::placeholders::_1));
+			                          std::bind (&SAMSocket::HandleWriteI2PData, shared_from_this (), std::placeholders::_1));
 		}
 		else
 			LogPrint (eLogWarning, "Datagram size ", len," exceeds buffer");
@@ -625,7 +625,7 @@ namespace client
 		localDestination (dest)
 	{
 	}
-		
+
 	SAMSession::~SAMSession ()
 	{
 		for (auto it: sockets)
@@ -636,10 +636,10 @@ namespace client
 	void SAMSession::CloseStreams ()
 	{
 		for (auto it: sockets)
-		{	
+		{
 			it->CloseStream ();
 			it->SetSocketType (eSAMSocketTypeTerminated);
-		}	
+		}
 		sockets.clear ();
 	}
 
@@ -654,7 +654,7 @@ namespace client
 	{
 		if (m_IsRunning)
 			Stop ();
-	}	
+	}
 
 	void SAMBridge::Start ()
 	{
@@ -673,33 +673,33 @@ namespace client
 		m_Sessions.clear ();
 		m_Service.stop ();
 		if (m_Thread)
-		{	
-			m_Thread->join (); 
+		{
+			m_Thread->join ();
 			delete m_Thread;
 			m_Thread = nullptr;
-		}	
+		}
 	}
 
-	void SAMBridge::Run () 
-	{ 
+	void SAMBridge::Run ()
+	{
 		while (m_IsRunning)
 		{
 			try
-			{	
+			{
 				m_Service.run ();
 			}
 			catch (std::exception& ex)
 			{
 				LogPrint ("SAM: ", ex.what ());
-			}	
-		}	
+			}
+		}
 	}
 
 	void SAMBridge::Accept ()
 	{
 		auto newSocket = std::make_shared<SAMSocket> (*this);
 		m_Acceptor.async_accept (newSocket->GetSocket (), std::bind (&SAMBridge::HandleAccept, this,
-			std::placeholders::_1, newSocket));
+		                         std::placeholders::_1, newSocket));
 	}
 
 	void SAMBridge::HandleAccept(const boost::system::error_code& ecode, std::shared_ptr<SAMSocket> socket)
@@ -709,7 +709,7 @@ namespace client
 			boost::system::error_code ec;
 			auto ep = socket->GetSocket ().remote_endpoint (ec);
 			if (!ec)
-			{	
+			{
 				LogPrint ("New SAM connection from ", ep);
 				socket->ReceiveHandshake ();
 			}
@@ -723,10 +723,10 @@ namespace client
 			Accept ();
 	}
 
-	SAMSession * SAMBridge::CreateSession (const std::string& id, const std::string& destination, 
-		const std::map<std::string, std::string> * params)
+	SAMSession * SAMBridge::CreateSession (const std::string& id, const std::string& destination,
+	                                       const std::map<std::string, std::string> * params)
 	{
-		std::shared_ptr<ClientDestination> localDestination = nullptr; 
+		std::shared_ptr<ClientDestination> localDestination = nullptr;
 		if (destination != "")
 		{
 			i2p::data::PrivateKeys keys;
@@ -741,10 +741,10 @@ namespace client
 			{
 				auto it = params->find (SAM_PARAM_SIGNATURE_TYPE);
 				if (it != params->end ())
-					// TODO: extract string values	
+					// TODO: extract string values
 					signatureType = boost::lexical_cast<int> (it->second);
 			}
-			localDestination = i2p::client::context.CreateNewLocalDestination (true, signatureType, params); 
+			localDestination = i2p::client::context.CreateNewLocalDestination (true, signatureType, params);
 		}
 		if (localDestination)
 		{
@@ -783,9 +783,9 @@ namespace client
 	void SAMBridge::ReceiveDatagram ()
 	{
 		m_DatagramSocket.async_receive_from (
-			boost::asio::buffer (m_DatagramReceiveBuffer, i2p::datagram::MAX_DATAGRAM_SIZE), 
-			m_SenderEndpoint,
-			std::bind (&SAMBridge::HandleReceivedDatagram, this, std::placeholders::_1, std::placeholders::_2)); 
+		    boost::asio::buffer (m_DatagramReceiveBuffer, i2p::datagram::MAX_DATAGRAM_SIZE),
+		    m_SenderEndpoint,
+		    std::bind (&SAMBridge::HandleReceivedDatagram, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void SAMBridge::HandleReceivedDatagram (const boost::system::error_code& ecode, std::size_t bytes_transferred)
@@ -794,8 +794,9 @@ namespace client
 		{
 			m_DatagramReceiveBuffer[bytes_transferred] = 0;
 			char * eol = strchr ((char *)m_DatagramReceiveBuffer, '\n');
-			*eol = 0; eol++;
-			size_t payloadLen = bytes_transferred - ((uint8_t *)eol - m_DatagramReceiveBuffer); 
+			*eol = 0;
+			eol++;
+			size_t payloadLen = bytes_transferred - ((uint8_t *)eol - m_DatagramReceiveBuffer);
 			LogPrint ("SAM datagram received ", m_DatagramReceiveBuffer," size=", payloadLen);
 			char * sessionID = strchr ((char *)m_DatagramReceiveBuffer, ' ');
 			if (sessionID)
@@ -804,15 +805,16 @@ namespace client
 				char * destination = strchr (sessionID, ' ');
 				if (destination)
 				{
-					*destination = 0; destination++;
+					*destination = 0;
+					destination++;
 					auto session = FindSession (sessionID);
 					if (session)
-					{	
+					{
 						i2p::data::IdentityEx dest;
 						dest.FromBase64 (destination);
 						session->localDestination->GetDatagramDestination ()->
-							SendDatagramTo ((uint8_t *)eol, payloadLen, dest.GetIdentHash ());
-					}	
+						SendDatagramTo ((uint8_t *)eol, payloadLen, dest.GetIdentHash ());
+					}
 					else
 						LogPrint ("Session ", sessionID, " not found");
 				}
