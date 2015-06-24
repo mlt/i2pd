@@ -4,7 +4,7 @@
 #include <inttypes.h>
 #include <string>
 #include <map>
-#include <list>
+#include <set>
 #include <thread>
 #include <mutex>
 #include <memory>
@@ -86,6 +86,7 @@ namespace client
 		private:
 
 			void Terminate ();	
+			void TerminateSession ();
 			void HandleHandshakeReceived (const boost::system::error_code& ecode, std::size_t bytes_transferred);
 			void HandleHandshakeReplySent (const boost::system::error_code& ecode, std::size_t bytes_transferred);
 			void HandleMessage (const boost::system::error_code& ecode, std::size_t bytes_transferred);
@@ -133,7 +134,7 @@ namespace client
 	struct SAMSession
 	{
 		std::shared_ptr<ClientDestination> localDestination;
-		std::list<std::shared_ptr<SAMSocket> > sockets;
+		std::set<std::shared_ptr<SAMSocket> > sockets;
 		
 		SAMSession (std::shared_ptr<ClientDestination> dest);		
 		~SAMSession ();

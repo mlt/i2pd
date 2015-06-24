@@ -24,7 +24,7 @@ namespace client
 
 	SAMSocket::~SAMSocket ()
 	{
-		Terminate ();
+		CloseStream ();
 	}	
 
 	void SAMSocket::CloseStream ()
@@ -35,11 +35,15 @@ namespace client
 			m_Stream.reset ();
 		}	
 	}	
-		
+
 	void SAMSocket::Terminate ()
 	{
 		CloseStream ();
-		
+		m_Socket.get_io_service ().post (boost::bind (&SAMSocket::TerminateSession, shared_from_this ()));
+	}
+
+	void SAMSocket::TerminateSession()
+	{
 		switch (m_SocketType)
 		{
 			case eSAMSocketTypeSession:
@@ -48,15 +52,15 @@ namespace client
 			case eSAMSocketTypeStream:
 			{
 				if (m_Session)
-					m_Session->sockets.remove (shared_from_this ());
+					m_Session->sockets.erase (shared_from_this ());
 				break;
 			}
 			case eSAMSocketTypeAcceptor:
 			{
 				if (m_Session)
 				{
-					m_Session->sockets.remove (shared_from_this ());
 					m_Session->localDestination->StopAcceptingStreams ();
+					m_Session->sockets.erase (shared_from_this ());
 				}
 				break;
 			}
@@ -362,7 +366,7 @@ namespace client
 	void SAMSocket::Connect (std::shared_ptr<const i2p::data::LeaseSet> remote)
 	{
 		m_SocketType = eSAMSocketTypeStream;
-		m_Session->sockets.push_back (shared_from_this ());
+		m_Session->sockets.insert (shared_from_this ());
 		m_Stream = m_Session->localDestination->CreateStream (remote);
 		m_Stream->Send ((uint8_t *)m_Buffer, 0); // connect
 		I2PReceive ();			
@@ -395,7 +399,7 @@ namespace client
 			if (!m_Session->localDestination->IsAcceptingStreams ())
 			{
 				m_SocketType = eSAMSocketTypeAcceptor;
-				m_Session->sockets.push_back (shared_from_this ());
+				m_Session->sockets.insert (shared_from_this ());
 				m_Session->localDestination->AcceptStreams (std::bind (&SAMSocket::HandleI2PAccept, shared_from_this (), std::placeholders::_1));
 				SendMessageReply (SAM_STREAM_STATUS_OK, strlen(SAM_STREAM_STATUS_OK), false);
 			}
