@@ -18,7 +18,7 @@ namespace api
 	{
 		i2p::util::filesystem::SetAppName (appName);
 		i2p::util::config::OptionParser(argc, argv);
-		i2p::context.Init ();	
+		i2p::context.Init ();
 	}
 
 	void StartI2P (std::ostream * logStream)
@@ -48,7 +48,7 @@ namespace api
 	}
 
 	i2p::client::ClientDestination * CreateLocalDestination (const i2p::data::PrivateKeys& keys, bool isPublic,
-		const std::map<std::string, std::string> * params)
+	        const std::map<std::string, std::string> * params)
 	{
 		auto localDestination = new i2p::client::ClientDestination (keys, isPublic, params);
 		localDestination->Start ();
@@ -56,7 +56,7 @@ namespace api
 	}
 
 	i2p::client::ClientDestination * CreateLocalDestination (bool isPublic, i2p::data::SigningKeyType sigType,
-		const std::map<std::string, std::string> * params)
+	        const std::map<std::string, std::string> * params)
 	{
 		i2p::data::PrivateKeys keys = i2p::data::PrivateKeys::CreateRandomKeys (sigType);
 		auto localDestination = new i2p::client::ClientDestination (keys, isPublic, params);
@@ -92,8 +92,8 @@ namespace api
 		else
 		{
 			RequestLeaseSet (dest, remote);
-			return nullptr;	
-		}	
+			return nullptr;
+		}
 	}
 
 	void AcceptStream (i2p::client::ClientDestination * dest, const i2p::stream::StreamingDestination::Acceptor& acceptor)

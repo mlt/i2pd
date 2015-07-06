@@ -23,36 +23,36 @@ namespace transport
 {
 	class UPnP
 	{
-	public:
+		public:
 
-		UPnP ();
-		~UPnP ();
-        void Close ();
+			UPnP ();
+			~UPnP ();
+			void Close ();
 
-        void Start ();
-        void Stop ();
+			void Start ();
+			void Stop ();
 
-		void Discover ();
-		void TryPortMapping (int type, int port);
-		void CloseMapping (int type, int port);
-	private:
-		void Run ();
+			void Discover ();
+			void TryPortMapping (int type, int port);
+			void CloseMapping (int type, int port);
+		private:
+			void Run ();
 
-        std::thread * m_Thread;
-        struct UPNPUrls m_upnpUrls;
-        struct IGDdatas m_upnpData;
+			std::thread * m_Thread;
+			struct UPNPUrls m_upnpUrls;
+			struct IGDdatas m_upnpData;
 
-        // For miniupnpc
-        char * m_MulticastIf = 0;
-        char * m_Minissdpdpath = 0;
-        struct UPNPDev * m_Devlist = 0;
-        char m_NetworkAddr[64];
-        char m_externalIPAddress[40];
-        bool m_IsModuleLoaded;
+			// For miniupnpc
+			char * m_MulticastIf = 0;
+			char * m_Minissdpdpath = 0;
+			struct UPNPDev * m_Devlist = 0;
+			char m_NetworkAddr[64];
+			char m_externalIPAddress[40];
+			bool m_IsModuleLoaded;
 #ifndef _WIN32
-        void *m_Module;
+			void *m_Module;
 #else
-        HINSTANCE *m_Module;
+			HINSTANCE *m_Module;
 #endif
 	};
 }

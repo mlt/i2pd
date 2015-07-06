@@ -14,27 +14,27 @@ namespace util
 {
 	template<typename Element>
 	class Queue
-	{	
+	{
 		public:
 
 			void Put (Element * e)
 			{
 				std::unique_lock<std::mutex>  l(m_QueueMutex);
-				m_Queue.push (e);	
+				m_Queue.push (e);
 				m_NonEmpty.notify_one ();
 			}
 
 			void Put (const std::vector<Element *>& vec)
 			{
 				if (!vec.empty ())
-				{	
+				{
 					std::unique_lock<std::mutex>  l(m_QueueMutex);
 					for (auto it: vec)
-						m_Queue.push (it);	
+						m_Queue.push (it);
 					m_NonEmpty.notify_one ();
-				}	
+				}
 			}
-			
+
 			Element * GetNext ()
 			{
 				std::unique_lock<std::mutex> l(m_QueueMutex);
@@ -43,7 +43,7 @@ namespace util
 				{
 					m_NonEmpty.wait (l);
 					el = GetNonThreadSafe ();
-				}	
+				}
 				return el;
 			}
 
@@ -55,7 +55,7 @@ namespace util
 				{
 					m_NonEmpty.wait_for (l, std::chrono::milliseconds (usec));
 					el = GetNonThreadSafe ();
-				}	
+				}
 				return el;
 			}
 
@@ -71,17 +71,17 @@ namespace util
 				return m_NonEmpty.wait_for (l, std::chrono::seconds (sec) + std::chrono::milliseconds (usec)) != std::cv_status::timeout;
 			}
 
-			bool IsEmpty () 
-			{	
+			bool IsEmpty ()
+			{
 				std::unique_lock<std::mutex> l(m_QueueMutex);
 				return m_Queue.empty ();
 			}
 
-			int GetSize () 
+			int GetSize ()
 			{
 				std::unique_lock<std::mutex> l(m_QueueMutex);
 				return m_Queue.size ();
-			}			
+			}
 
 			void WakeUp () { m_NonEmpty.notify_all (); };
 
@@ -89,14 +89,14 @@ namespace util
 			{
 				std::unique_lock<std::mutex> l(m_QueueMutex);
 				return GetNonThreadSafe ();
-			}	
+			}
 
 			Element * Peek ()
 			{
 				std::unique_lock<std::mutex> l(m_QueueMutex);
 				return GetNonThreadSafe (true);
-			}	
-			
+			}
+
 		private:
 
 			Element * GetNonThreadSafe (bool peek = false)
@@ -107,16 +107,16 @@ namespace util
 					if (!peek)
 						m_Queue.pop ();
 					return el;
-				}				
+				}
 				return nullptr;
-			}	
-			
+			}
+
 		private:
 
 			std::queue<Element *> m_Queue;
 			std::mutex m_QueueMutex;
 			std::condition_variable m_NonEmpty;
-	};	
+	};
 
 	template<class Msg>
 	class MsgQueue: public Queue<Msg>
@@ -132,7 +132,7 @@ namespace util
 				if (m_IsRunning)
 				{
 					m_IsRunning = false;
-					Queue<Msg>::WakeUp ();					
+					Queue<Msg>::WakeUp ();
 					m_Thread.join();
 				}
 			}
@@ -154,16 +154,16 @@ namespace util
 						m_OnEmpty ();
 					if (m_IsRunning)
 						Queue<Msg>::Wait ();
-				}	
-			}	
-			
+				}
+			}
+
 		private:
-			
+
 			volatile bool m_IsRunning;
 			OnEmpty m_OnEmpty;
-			std::thread m_Thread;	
-	};	
-}		
-}	
+			std::thread m_Thread;
+	};
+}
+}
 
 #endif

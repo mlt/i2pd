@@ -12,11 +12,11 @@ namespace i2p
 {
 namespace datagram
 {
-	DatagramDestination::DatagramDestination (i2p::client::ClientDestination& owner): 
+	DatagramDestination::DatagramDestination (i2p::client::ClientDestination& owner):
 		m_Owner (owner), m_Receiver (nullptr)
 	{
 	}
-		
+
 	void DatagramDestination::SendDatagramTo (const uint8_t * payload, size_t len, const i2p::data::IdentHash& ident, uint16_t fromPort, uint16_t toPort)
 	{
 		uint8_t buf[MAX_DATAGRAM_SIZE];
@@ -25,18 +25,18 @@ namespace datagram
 		auto signatureLen = m_Owner.GetIdentity ().GetSignatureLen ();
 		uint8_t * buf1 = signature + signatureLen;
 		size_t headerLen = identityLen + signatureLen;
-		
-		memcpy (buf1, payload, len);	
+
+		memcpy (buf1, payload, len);
 		if (m_Owner.GetIdentity ().GetSigningKeyType () == i2p::data::SIGNING_KEY_TYPE_DSA_SHA1)
 		{
-			uint8_t hash[32];	
+			uint8_t hash[32];
 			CryptoPP::SHA256().CalculateDigest (hash, buf1, len);
 			m_Owner.Sign (hash, 32, signature);
 		}
 		else
 			m_Owner.Sign (buf1, len, signature);
 
-		auto msg = CreateDataMessage (buf, len + headerLen, fromPort, toPort); 
+		auto msg = CreateDataMessage (buf, len + headerLen, fromPort, toPort);
 		auto remote = m_Owner.FindLeaseSet (ident);
 		if (remote)
 			m_Owner.GetService ().post (std::bind (&DatagramDestination::SendMsg, this, msg, remote));
@@ -50,23 +50,23 @@ namespace datagram
 			SendMsg (msg, remote);
 		else
 			DeleteI2NPMessage (msg);
-	}	
-		
+	}
+
 	void DatagramDestination::SendMsg (I2NPMessage * msg, std::shared_ptr<const i2p::data::LeaseSet> remote)
 	{
 		auto outboundTunnel = m_Owner.GetTunnelPool ()->GetNextOutboundTunnel ();
 		auto leases = remote->GetNonExpiredLeases ();
 		if (!leases.empty () && outboundTunnel)
 		{
-			std::vector<i2p::tunnel::TunnelMessageBlock> msgs;			
+			std::vector<i2p::tunnel::TunnelMessageBlock> msgs;
 			uint32_t i = i2p::context.GetRandomNumberGenerator ().GenerateWord32 (0, leases.size () - 1);
 			auto garlic = m_Owner.WrapMessage (remote, msg, true);
-			msgs.push_back (i2p::tunnel::TunnelMessageBlock 
-				{ 
-					i2p::tunnel::eDeliveryTypeTunnel,
-					leases[i].tunnelGateway, leases[i].tunnelID,
-					garlic
-				});
+			msgs.push_back (i2p::tunnel::TunnelMessageBlock
+			{
+				i2p::tunnel::eDeliveryTypeTunnel,
+				leases[i].tunnelGateway, leases[i].tunnelID,
+				garlic
+			});
 			outboundTunnel->SendTunnelDataMsg (msgs);
 		}
 		else
@@ -75,8 +75,8 @@ namespace datagram
 				LogPrint (eLogWarning, "Failed to send datagram. All leases expired");
 			else
 				LogPrint (eLogWarning, "Failed to send datagram. No outbound tunnels");
-			DeleteI2NPMessage (msg);	
-		}	
+			DeleteI2NPMessage (msg);
+		}
 	}
 
 	void DatagramDestination::HandleDatagram (uint16_t fromPort, uint16_t toPort, const uint8_t * buf, size_t len)
@@ -92,10 +92,10 @@ namespace datagram
 			uint8_t hash[32];
 			CryptoPP::SHA256().CalculateDigest (hash, buf + headerLen, len - headerLen);
 			verified = identity.Verify (hash, 32, signature);
-		}	
-		else	
+		}
+		else
 			verified = identity.Verify (buf + headerLen, len - headerLen, signature);
-				
+
 		if (verified)
 		{
 			auto it = m_ReceiversByPorts.find (toPort);
@@ -104,10 +104,10 @@ namespace datagram
 			else if (m_Receiver != nullptr)
 				m_Receiver (identity, fromPort, toPort, buf + headerLen, len -headerLen);
 			else
-				LogPrint (eLogWarning, "Receiver for datagram is not set");	
+				LogPrint (eLogWarning, "Receiver for datagram is not set");
 		}
 		else
-			LogPrint (eLogWarning, "Datagram signature verification failed");	
+			LogPrint (eLogWarning, "Datagram signature verification failed");
 	}
 
 	void DatagramDestination::HandleDataMessagePayload (uint16_t fromPort, uint16_t toPort, const uint8_t * buf, size_t len)
@@ -121,7 +121,7 @@ namespace datagram
 		if (uncompressedLen <= MAX_DATAGRAM_SIZE)
 		{
 			decompressor.Get (uncompressed, uncompressedLen);
-			HandleDatagram (fromPort, toPort, uncompressed, uncompressedLen); 
+			HandleDatagram (fromPort, toPort, uncompressed, uncompressedLen);
 		}
 		else
 			LogPrint ("Received datagram size ", uncompressedLen,  " exceeds max size");
@@ -140,12 +140,12 @@ namespace datagram
 		buf += 4;
 		compressor.Get (buf, size);
 		htobe16buf (buf + 4, fromPort); // source port
-		htobe16buf (buf + 6, toPort); // destination port 
+		htobe16buf (buf + 6, toPort); // destination port
 		buf[9] = i2p::client::PROTOCOL_TYPE_DATAGRAM; // datagram protocol
-		msg->len += size + 4; 
+		msg->len += size + 4;
 		FillI2NPMessageHeader (msg, eI2NPData);
 		return msg;
-	}	
+	}
 }
 }
 

@@ -30,11 +30,11 @@ namespace util
 		std::string GetAppName ();
 
 		const boost::filesystem::path &GetDataDir();
-		std::string GetFullPath (const std::string& filename);	
+		std::string GetFullPath (const std::string& filename);
 		boost::filesystem::path GetDefaultDataDir();
 		boost::filesystem::path GetConfigFile();
 		void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet,
-                std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
+		                    std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
 		boost::filesystem::path GetCertificatesDir();
 	}
 
@@ -51,11 +51,12 @@ namespace util
 		void MergeChunkedResponse (std::istream& response, std::ostream& merged);
 		int httpRequestViaI2pProxy(const std::string& address, std::string &content); // return http code
 		std::string urlDecode(const std::string& data);
-		
-		struct url {
-    			url(const std::string& url_s); // omitted copy, ==, accessors, ...
+
+		struct url
+		{
+				url(const std::string& url_s); // omitted copy, ==, accessors, ...
 			private:
-    			void parse(const std::string& url_s);
+				void parse(const std::string& url_s);
 			public:
 				std::string protocol_, host_, path_, query_;
 				std::string portstr_;
