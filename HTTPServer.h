@@ -13,7 +13,7 @@ namespace i2p
 {
 namespace util
 {
-	const size_t HTTP_CONNECTION_BUFFER_SIZE = 8192;	
+	const size_t HTTP_CONNECTION_BUFFER_SIZE = 8192;
 	const int HTTP_DESTINATION_REQUEST_TIMEOUT = 10; // in seconds
 	class HTTPConnection: public std::enable_shared_from_this<HTTPConnection>
 	{
@@ -21,19 +21,19 @@ namespace util
 
 			struct header
 			{
-			  std::string name;
-			  std::string value;
+				std::string name;
+				std::string value;
 			};
 
 			struct request
 			{
-			  std::string method;
-			  std::string uri;
-			  std::string host;
-		      int port;	
-			  int http_version_major;
-			  int http_version_minor;
-			  std::vector<header> headers;
+				std::string method;
+				std::string uri;
+				std::string host;
+				int port;
+				int http_version_major;
+				int http_version_minor;
+				std::vector<header> headers;
 			};
 
 			struct reply
@@ -46,12 +46,12 @@ namespace util
 
 		public:
 
-			HTTPConnection (boost::asio::ip::tcp::socket * socket): 
-				m_Socket (socket), m_Timer (socket->get_io_service ()), 
+			HTTPConnection (boost::asio::ip::tcp::socket * socket):
+				m_Socket (socket), m_Timer (socket->get_io_service ()),
 				m_Stream (nullptr), m_BufferLen (0) {};
 			~HTTPConnection() { delete m_Socket; }
 			void Receive ();
-			
+
 		private:
 
 			void Terminate ();
@@ -76,8 +76,8 @@ namespace util
 			void FillContent (std::stringstream& s);
 			std::string ExtractAddress ();
 			void ExtractParams (const std::string& str, std::map<std::string, std::string>& params);
-			
-			
+
+
 		protected:
 
 			boost::asio::ip::tcp::socket * m_Socket;
@@ -89,12 +89,12 @@ namespace util
 			reply m_Reply;
 
 		protected:
-	
+
 			virtual void RunRequest ();
 			void HandleDestinationRequest(const std::string& address, const std::string& uri);
 			void SendToAddress (const std::string& address, int port, const char * buf, size_t len);
-			void HandleDestinationRequestTimeout (const boost::system::error_code& ecode, 
-				i2p::data::IdentHash destination, int port, const char * buf, size_t len);
+			void HandleDestinationRequestTimeout (const boost::system::error_code& ecode,
+			                                      i2p::data::IdentHash destination, int port, const char * buf, size_t len);
 			void SendToDestination (std::shared_ptr<const i2p::data::LeaseSet> remote, int port, const char * buf, size_t len);
 
 		public:
@@ -116,9 +116,9 @@ namespace util
 		private:
 
 			void Run ();
- 			void Accept ();
+			void Accept ();
 			void HandleAccept(const boost::system::error_code& ecode);
-			
+
 		private:
 
 			std::thread * m_Thread;

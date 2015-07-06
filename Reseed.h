@@ -18,31 +18,31 @@ namespace data
 
 	class Reseeder
 	{
-		typedef Tag<512> PublicKey;	
-		
+			typedef Tag<512> PublicKey;
+
 		public:
-		
+
 			Reseeder();
 			~Reseeder();
 			bool reseedNow(); // depreacted
 			int ReseedNowSU3 ();
 
 			void LoadCertificates ();
-			
+
 		private:
 
 			void LoadCertificate (const std::string& filename);
 			std::string LoadCertificate (CryptoPP::ByteQueue& queue); // returns issuer's name
-			
+
 			int ReseedFromSU3 (const std::string& host, bool https = false);
-			int ProcessSU3File (const char * filename);	
-			int ProcessSU3Stream (std::istream& s);	
+			int ProcessSU3File (const char * filename);
+			int ProcessSU3Stream (std::istream& s);
 
 			bool FindZipDataDescriptor (std::istream& s);
-			
+
 			std::string HttpsRequest (const std::string& address);
 
-		private:	
+		private:
 
 			std::map<std::string, PublicKey> m_SigningKeys;
 	};
@@ -70,7 +70,7 @@ namespace data
 			void Send (const uint8_t * buf, size_t len);
 			bool Receive (std::ostream& rs);
 			bool IsEstablished () const { return m_IsEstablished; };
-			
+
 		private:
 
 			void Handshake ();
@@ -79,7 +79,7 @@ namespace data
 			CryptoPP::RSA::PublicKey ExtractPublicKey (const uint8_t * certificate, size_t len);
 
 			void PRF (const uint8_t * secret, const char * label, const uint8_t * random, size_t randomLen,
-				size_t len, uint8_t * buf);
+			          size_t len, uint8_t * buf);
 
 		private:
 

@@ -17,10 +17,10 @@ namespace data
 	const char CAPS_FLAG_FLOODFILL = 'f';
 	const char CAPS_FLAG_HIDDEN = 'H';
 	const char CAPS_FLAG_REACHABLE = 'R';
-	const char CAPS_FLAG_UNREACHABLE = 'U';	
-	const char CAPS_FLAG_LOW_BANDWIDTH1 = 'K';		
-	const char CAPS_FLAG_LOW_BANDWIDTH2 = 'L';	
-	const char CAPS_FLAG_HIGH_BANDWIDTH1 = 'M';	
+	const char CAPS_FLAG_UNREACHABLE = 'U';
+	const char CAPS_FLAG_LOW_BANDWIDTH1 = 'K';
+	const char CAPS_FLAG_LOW_BANDWIDTH2 = 'L';
+	const char CAPS_FLAG_HIGH_BANDWIDTH1 = 'M';
 	const char CAPS_FLAG_HIGH_BANDWIDTH2 = 'N';
 	const char CAPS_FLAG_HIGH_BANDWIDTH3 = 'O';
 
@@ -33,13 +33,13 @@ namespace data
 		public:
 
 			enum SupportedTranports
-			{	
+			{
 				eNTCPV4 = 0x01,
 				eNTCPV6 = 0x02,
 				eSSUV4 = 0x04,
 				eSSUV6 = 0x08
 			};
-			
+
 			enum Caps
 			{
 				eFloodfill = 0x01,
@@ -58,7 +58,7 @@ namespace data
 				eTransportSSU
 			};
 
-			struct Introducer			
+			struct Introducer
 			{
 				boost::asio::ip::address iHost;
 				int iPort;
@@ -78,20 +78,20 @@ namespace data
 				Tag<32> key; // intro key for SSU
 				std::vector<Introducer> introducers;
 
-				bool IsCompatible (const boost::asio::ip::address& other) const 
+				bool IsCompatible (const boost::asio::ip::address& other) const
 				{
 					return (host.is_v4 () && other.is_v4 ()) ||
-						(host.is_v6 () && other.is_v6 ());
-				}	
+					       (host.is_v6 () && other.is_v6 ());
+				}
 			};
-			
+
 			RouterInfo (const std::string& fullPath);
 			RouterInfo (): m_Buffer (nullptr) { };
 			RouterInfo (const RouterInfo& ) = default;
 			RouterInfo& operator=(const RouterInfo& ) = default;
 			RouterInfo (const uint8_t * buf, int len);
 			~RouterInfo ();
-			
+
 			const IdentityEx& GetRouterIdentity () const { return m_RouterIdentity; };
 			void SetRouterIdentity (const IdentityEx& identity);
 			std::string GetIdentHashBase64 () const { return GetIdentHash ().ToBase64 (); };
@@ -101,7 +101,7 @@ namespace data
 			const Address * GetNTCPAddress (bool v4only = true) const;
 			const Address * GetSSUAddress (bool v4only = true) const;
 			const Address * GetSSUV6Address () const;
-			
+
 			void AddNTCPAddress (const char * host, int port);
 			void AddSSUAddress (const char * host, int port, const uint8_t * key, int mtu = 0);
 			bool AddIntroducer (const Address * address, uint32_t tag);
@@ -122,34 +122,34 @@ namespace data
 			bool IsHidden () const { return m_Caps & eHidden; };
 			bool IsHighBandwidth () const { return m_Caps & RouterInfo::eHighBandwidth; };
 
-			uint8_t GetCaps () const { return m_Caps; };	
+			uint8_t GetCaps () const { return m_Caps; };
 			void SetCaps (uint8_t caps);
 			void SetCaps (const char * caps);
 
-			void SetUnreachable (bool unreachable) { m_IsUnreachable = unreachable; }; 
+			void SetUnreachable (bool unreachable) { m_IsUnreachable = unreachable; };
 			bool IsUnreachable () const { return m_IsUnreachable; };
 
 			const uint8_t * GetBuffer () const { return m_Buffer; };
 			const uint8_t * LoadBuffer (); // load if necessary
-			int GetBufferLen () const { return m_BufferLen; };			
+			int GetBufferLen () const { return m_BufferLen; };
 			void CreateBuffer (const PrivateKeys& privateKeys);
 
 			bool IsUpdated () const { return m_IsUpdated; };
-			void SetUpdated (bool updated) { m_IsUpdated = updated; }; 
+			void SetUpdated (bool updated) { m_IsUpdated = updated; };
 			void SaveToFile (const std::string& fullPath);
 
 			std::shared_ptr<RouterProfile> GetProfile () const;
 			void SaveProfile () { if (m_Profile) m_Profile->Save (); };
-			
+
 			void Update (const uint8_t * buf, int len);
 			void DeleteBuffer () { delete[] m_Buffer; m_Buffer = nullptr; };
-			
+
 			// implements RoutingDestination
 			const IdentHash& GetIdentHash () const { return m_RouterIdentity.GetIdentHash (); };
 			const uint8_t * GetEncryptionPublicKey () const { return m_RouterIdentity.GetStandardIdentity ().publicKey; };
 			bool IsDestination () const { return false; };
 
-			
+
 		private:
 
 			bool LoadFile ();
@@ -161,7 +161,7 @@ namespace data
 			void WriteString (const std::string& str, std::ostream& s);
 			void ExtractCaps (const char * value);
 			const Address * GetAddress (TransportStyle s, bool v4only, bool v6only = false) const;
-			void UpdateCapsProperty ();			
+			void UpdateCapsProperty ();
 
 		private:
 
@@ -175,8 +175,8 @@ namespace data
 			bool m_IsUpdated, m_IsUnreachable;
 			uint8_t m_SupportedTransports, m_Caps;
 			mutable std::shared_ptr<RouterProfile> m_Profile;
-	};	
-}	
+	};
+}
 }
 
 #endif

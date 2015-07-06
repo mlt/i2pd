@@ -37,8 +37,8 @@ namespace crypto
 			CryptoPP::ECP::Point Sum (const CryptoPP::ECP::Point& p1, const CryptoPP::ECP::Point& p2) const
 			{
 				CryptoPP::Integer m = d*p1.x*p2.x*p1.y*p2.y,
-				x = a_times_b_mod_c (p1.x*p2.y + p2.x*p1.y, (CryptoPP::Integer::One() + m).InverseMod (q), q),
-				y = a_times_b_mod_c (p1.y*p2.y + p1.x*p2.x, (CryptoPP::Integer::One() - m).InverseMod (q), q);
+				                  x = a_times_b_mod_c (p1.x*p2.y + p2.x*p1.y, (CryptoPP::Integer::One() + m).InverseMod (q), q),
+				                  y = a_times_b_mod_c (p1.y*p2.y + p1.x*p2.x, (CryptoPP::Integer::One() - m).InverseMod (q), q);
 				return CryptoPP::ECP::Point {x, y};
 			}
 
@@ -53,20 +53,20 @@ namespace crypto
 						res = Sum (res, res);
 						if (e.GetBit (i)) res = Sum (res, p);
 					}
-				}	
+				}
 				return res;
-			} 
+			}
 
 			bool IsOnCurve (const CryptoPP::ECP::Point& p) const
 			{
 				auto x2 = p.x.Squared(), y2 = p.y.Squared ();
 				return  (y2 - x2 - CryptoPP::Integer::One() - d*x2*y2).Modulo (q).IsZero ();
-			}	
+			}
 
 			CryptoPP::Integer RecoverX (const CryptoPP::Integer& y) const
 			{
 				auto y2 = y.Squared ();
-				auto xx = (y2 - CryptoPP::Integer::One())*(d*y2 + CryptoPP::Integer::One()).InverseMod (q); 
+				auto xx = (y2 - CryptoPP::Integer::One())*(d*y2 + CryptoPP::Integer::One()).InverseMod (q);
 				auto x = a_exp_b_mod_c (xx, (q + CryptoPP::Integer (3)).DividedBy (8), q);
 				if (!(x.Squared () - xx).Modulo (q).IsZero ())
 					x = a_times_b_mod_c (x, I, q);
@@ -78,7 +78,7 @@ namespace crypto
 			{
 				auto x = RecoverX (y);
 				CryptoPP::ECP::Point p {x, y};
-				if (!IsOnCurve (p)) 
+				if (!IsOnCurve (p))
 				{
 					LogPrint (eLogError, "Decoded point is not on 25519");
 					return CryptoPP::ECP::Point {0, 1};
@@ -88,7 +88,7 @@ namespace crypto
 
 		private:
 
-			CryptoPP::Integer q, l, d, I; 
+			CryptoPP::Integer q, l, d, I;
 			CryptoPP::ECP::Point B; // base point
 	};
 
@@ -97,24 +97,24 @@ namespace crypto
 	{
 		if (!g_Ed25519)
 			g_Ed25519.reset (new Ed25519 ());
-		return g_Ed25519; 
-	}		
-	
+		return g_Ed25519;
+	}
 
-	EDDSA25519Verifier::EDDSA25519Verifier (const uint8_t * signingKey):	
+
+	EDDSA25519Verifier::EDDSA25519Verifier (const uint8_t * signingKey):
 		m_PublicKey (GetEd25519 ()->DecodePublicKey (signingKey))
 	{
 	}
 
 	bool EDDSA25519Verifier::Verify (const uint8_t * buf, size_t len, const uint8_t * signature) const
 	{
-		return true; // TODO:	
+		return true; // TODO:
 	}
 
 	void EDDSA25519Signer::Sign (CryptoPP::RandomNumberGenerator& rnd, const uint8_t * buf, int len, uint8_t * signature) const
 	{
 		// TODO
-	}	
+	}
 }
 }
 

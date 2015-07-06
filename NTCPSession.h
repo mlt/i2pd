@@ -25,8 +25,8 @@ namespace transport
 	{
 		uint8_t pubKey[256];
 		uint8_t HXxorHI[32];
-	};	
-	
+	};
+
 	struct NTCPPhase2
 	{
 		uint8_t pubKey[256];
@@ -35,15 +35,15 @@ namespace transport
 			uint8_t hxy[32];
 			uint32_t timestamp;
 			uint8_t filler[12];
-		} encrypted;	
-	};	
-	
-#pragma pack()	
+		} encrypted;
+	};
 
-	const size_t NTCP_MAX_MESSAGE_SIZE = 16384; 
+#pragma pack()
+
+	const size_t NTCP_MAX_MESSAGE_SIZE = 16384;
 	const size_t NTCP_BUFFER_SIZE = 4160; // fits 4 tunnel messages (4*1028)
 	const int NTCP_TERMINATION_TIMEOUT = 120; // 2 minutes
-	const size_t NTCP_DEFAULT_PHASE3_SIZE = 2/*size*/ + i2p::data::DEFAULT_IDENTITY_SIZE/*387*/ + 4/*ts*/ + 15/*padding*/ + 40/*signature*/; // 448 	
+	const size_t NTCP_DEFAULT_PHASE3_SIZE = 2/*size*/ + i2p::data::DEFAULT_IDENTITY_SIZE/*387*/ + 4/*ts*/ + 15/*padding*/ + 40/*signature*/; // 448
 	const int NTCP_BAN_EXPIRATION_TIMEOUT = 70; // in second
 
 	class NTCPServer;
@@ -58,11 +58,11 @@ namespace transport
 
 			boost::asio::ip::tcp::socket& GetSocket () { return m_Socket; };
 			bool IsEstablished () const { return m_IsEstablished; };
-			
+
 			void ClientLogin ();
 			void ServerLogin ();
 			void SendI2NPMessages (const std::vector<std::shared_ptr<I2NPMessage> >& msgs);
-			
+
 		private:
 
 			void PostI2NPMessages (std::vector<std::shared_ptr<I2NPMessage> > msgs);
@@ -71,7 +71,7 @@ namespace transport
 			void SetIsEstablished (bool isEstablished) { m_IsEstablished = isEstablished; }
 
 			void CreateAESKey (uint8_t * pubKey, i2p::crypto::AESKey& key);
-				
+
 			// client
 			void SendPhase3 ();
 			void HandlePhase1Sent (const boost::system::error_code& ecode,  std::size_t bytes_transferred);
@@ -88,41 +88,41 @@ namespace transport
 			void HandlePhase3ExtraReceived (const boost::system::error_code& ecode, std::size_t bytes_transferred, uint32_t tsB, size_t paddingLen);
 			void HandlePhase3 (uint32_t tsB, size_t paddingLen);
 			void HandlePhase4Sent (const boost::system::error_code& ecode,  std::size_t bytes_transferred);
-			
+
 			// common
 			void Receive ();
 			void HandleReceived (const boost::system::error_code& ecode, std::size_t bytes_transferred);
-			bool DecryptNextBlock (const uint8_t * encrypted);	
-		
+			bool DecryptNextBlock (const uint8_t * encrypted);
+
 			void Send (std::shared_ptr<i2p::I2NPMessage> msg);
 			boost::asio::const_buffers_1 CreateMsgBuffer (std::shared_ptr<I2NPMessage> msg);
 			void Send (const std::vector<std::shared_ptr<I2NPMessage> >& msgs);
 			void HandleSent (const boost::system::error_code& ecode, std::size_t bytes_transferred, std::vector<std::shared_ptr<I2NPMessage> > msgs);
-			
-			
+
+
 			// timer
 			void ScheduleTermination ();
 			void HandleTerminationTimer (const boost::system::error_code& ecode);
-			
+
 		private:
 
 			NTCPServer& m_Server;
 			boost::asio::ip::tcp::socket m_Socket;
 			boost::asio::deadline_timer m_TerminationTimer;
 			bool m_IsEstablished, m_IsTerminated;
-			
+
 			i2p::crypto::CBCDecryption m_Decryption;
 			i2p::crypto::CBCEncryption m_Encryption;
 
 			struct Establisher
-			{	
+			{
 				NTCPPhase1 phase1;
 				NTCPPhase2 phase2;
-			} * m_Establisher;	
-			
+			} * m_Establisher;
+
 			i2p::crypto::AESAlignedBuffer<NTCP_BUFFER_SIZE + 16> m_ReceiveBuffer;
 			i2p::crypto::AESAlignedBuffer<16> m_TimeSyncBuffer;
-			int m_ReceiveBufferOffset; 
+			int m_ReceiveBufferOffset;
 
 			std::shared_ptr<I2NPMessage> m_NextMessage;
 			size_t m_NextMessageOffset;
@@ -130,9 +130,9 @@ namespace transport
 
 			bool m_IsSending;
 			std::vector<std::shared_ptr<I2NPMessage> > m_SendQueue;
-			
+
 			boost::asio::ip::address m_ConnectedFrom; // for ban
-	};	
+	};
 
 	// TODO: move to NTCP.h/.cpp
 	class NTCPServer
@@ -149,9 +149,9 @@ namespace transport
 			void RemoveNTCPSession (std::shared_ptr<NTCPSession> session);
 			std::shared_ptr<NTCPSession> FindNTCPSession (const i2p::data::IdentHash& ident);
 			void Connect (const boost::asio::ip::address& address, int port, std::shared_ptr<NTCPSession> conn);
-			
+
 			boost::asio::io_service& GetService () { return m_Service; };
-			void Ban (const boost::asio::ip::address& addr);			
+			void Ban (const boost::asio::ip::address& addr);
 
 		private:
 
@@ -160,11 +160,11 @@ namespace transport
 			void HandleAcceptV6 (std::shared_ptr<NTCPSession> conn, const boost::system::error_code& error);
 
 			void HandleConnect (const boost::system::error_code& ecode, std::shared_ptr<NTCPSession> conn);
-			
-		private:	
+
+		private:
 
 			bool m_IsRunning;
-			std::thread * m_Thread;	
+			std::thread * m_Thread;
 			boost::asio::io_service m_Service;
 			boost::asio::io_service::work m_Work;
 			boost::asio::ip::tcp::acceptor * m_NTCPAcceptor, * m_NTCPV6Acceptor;
@@ -176,8 +176,8 @@ namespace transport
 
 			// for HTTP/I2PControl
 			const decltype(m_NTCPSessions)& GetNTCPSessions () const { return m_NTCPSessions; };
-	};	
-}	
-}	
+	};
+}
+}
 
 #endif

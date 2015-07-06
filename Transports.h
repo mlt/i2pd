@@ -50,7 +50,7 @@ namespace transport
 			std::queue<DHKeysPair *> m_Queue;
 
 			bool m_IsRunning;
-			std::thread * m_Thread;	
+			std::thread * m_Thread;
 			std::condition_variable m_Acquired;
 			std::mutex m_AcquiredMutex;
 			CryptoPP::AutoSeededRandomPool m_Rnd;
@@ -68,9 +68,9 @@ namespace transport
 		{
 			for (auto it: sessions)
 				it->Done ();
-		}	
-	};	
-	
+		}
+	};
+
 	const size_t SESSION_CREATION_TIMEOUT = 10; // in seconds
 	const uint32_t LOW_BANDWIDTH_LIMIT = 32*1024; // 32KBs
 	class Transports
@@ -82,9 +82,9 @@ namespace transport
 
 			void Start ();
 			void Stop ();
-			
+
 			boost::asio::io_service& GetService () { return m_Service; };
-			i2p::transport::DHKeysPair * GetNextDHKeysPair ();	
+			i2p::transport::DHKeysPair * GetNextDHKeysPair ();
 			void ReuseDHKeysPair (DHKeysPair * pair);
 
 			void SendMessage (const i2p::data::IdentHash& ident, std::shared_ptr<i2p::I2NPMessage> msg);
@@ -94,11 +94,11 @@ namespace transport
 			void PeerConnected (std::shared_ptr<TransportSession> session);
 			void PeerDisconnected (std::shared_ptr<TransportSession> session);
 			bool IsConnected (const i2p::data::IdentHash& ident) const;
-			
+
 			void UpdateSentBytes (uint64_t numBytes) { m_TotalSentBytes += numBytes; };
 			void UpdateReceivedBytes (uint64_t numBytes) { m_TotalReceivedBytes += numBytes; };
 			uint64_t GetTotalSentBytes () const { return m_TotalSentBytes; };
-			uint64_t GetTotalReceivedBytes () const { return m_TotalReceivedBytes; };		
+			uint64_t GetTotalReceivedBytes () const { return m_TotalReceivedBytes; };
 			uint32_t GetInBandwidth () const { return m_InBandwidth; }; // bytes per second
 			uint32_t GetOutBandwidth () const { return m_OutBandwidth; }; // bytes per second
 			bool IsBandwidthExceeded () const;
@@ -113,19 +113,19 @@ namespace transport
 			void PostMessages (i2p::data::IdentHash ident, std::vector<std::shared_ptr<i2p::I2NPMessage> > msgs);
 			void PostCloseSession (std::shared_ptr<const i2p::data::RouterInfo> router);
 			bool ConnectToPeer (const i2p::data::IdentHash& ident, Peer& peer);
-			void HandlePeerCleanupTimer (const boost::system::error_code& ecode);			
+			void HandlePeerCleanupTimer (const boost::system::error_code& ecode);
 
 			void NTCPResolve (const std::string& addr, const i2p::data::IdentHash& ident);
 			void HandleNTCPResolve (const boost::system::error_code& ecode, boost::asio::ip::tcp::resolver::iterator it,
- 				i2p::data::IdentHash ident, std::shared_ptr<boost::asio::ip::tcp::resolver> resolver);
+			                        i2p::data::IdentHash ident, std::shared_ptr<boost::asio::ip::tcp::resolver> resolver);
 
 			void UpdateBandwidth ();
 			void DetectExternalIP ();
-			
+
 		private:
 
 			bool m_IsRunning;
-			std::thread * m_Thread;	
+			std::thread * m_Thread;
 			boost::asio::io_service m_Service;
 			boost::asio::io_service::work m_Work;
 			boost::asio::deadline_timer m_PeerCleanupTimer;
@@ -133,13 +133,13 @@ namespace transport
 			NTCPServer * m_NTCPServer;
 			SSUServer * m_SSUServer;
 			std::map<i2p::data::IdentHash, Peer> m_Peers;
-			
+
 			DHKeysPairSupplier m_DHKeysPairSupplier;
 
 			std::atomic<uint64_t> m_TotalSentBytes, m_TotalReceivedBytes;
 			uint32_t m_InBandwidth, m_OutBandwidth;
-			uint64_t m_LastInBandwidthUpdateBytes, m_LastOutBandwidthUpdateBytes;	
-			uint64_t m_LastBandwidthUpdateTime;		
+			uint64_t m_LastInBandwidthUpdateBytes, m_LastOutBandwidthUpdateBytes;
+			uint64_t m_LastBandwidthUpdateTime;
 
 #ifdef USE_UPNP
 			UPnP m_UPnP;
@@ -151,10 +151,10 @@ namespace transport
 			const NTCPServer * GetNTCPServer () const { return m_NTCPServer; };
 			const SSUServer * GetSSUServer () const { return m_SSUServer; };
 			const decltype(m_Peers)& GetPeers () const { return m_Peers; };
-	};	
+	};
 
 	extern Transports transports;
-}	
+}
 }
 
 #endif

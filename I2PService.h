@@ -68,7 +68,7 @@ namespace client
 			// Call to know if the handler is dead
 			inline bool Dead () { return m_Dead; }
 			// Call when done to clean up (make sure Kill is called first)
-			inline void Done (std::shared_ptr<I2PServiceHandler> me) { if(m_Service) m_Service->RemoveHandler(me); }
+			inline void Done (std::shared_ptr<I2PServiceHandler> me) { if (m_Service) m_Service->RemoveHandler(me); }
 			// Call to talk with the owner
 			inline I2PService * GetOwner() { return m_Service; }
 		private:
@@ -83,11 +83,11 @@ namespace client
 		public:
 			TCPIPAcceptor (int port, std::shared_ptr<ClientDestination> localDestination = nullptr) :
 				I2PService(localDestination),
-				m_Acceptor (GetService (), boost::asio::ip::tcp::endpoint (boost::asio::ip::tcp::v4(), port)),
+				m_Acceptor (GetService (), boost::asio::ip::tcp::endpoint (boost::asio::ip::address::from_string("127.0.0.1"), port)),
 				m_Timer (GetService ()) {}
 			TCPIPAcceptor (int port, i2p::data::SigningKeyType kt) :
 				I2PService(kt),
-				m_Acceptor (GetService (), boost::asio::ip::tcp::endpoint (boost::asio::ip::tcp::v4(), port)),
+				m_Acceptor (GetService (), boost::asio::ip::tcp::endpoint (boost::asio::ip::address::from_string("127.0.0.1"), port)),
 				m_Timer (GetService ()) {}
 			virtual ~TCPIPAcceptor () { TCPIPAcceptor::Stop(); }
 			//If you override this make sure you call it from the children

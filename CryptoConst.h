@@ -11,28 +11,28 @@ namespace crypto
 	{
 		// DH/ElGamal
 		const CryptoPP::Integer elgp;
-		const CryptoPP::Integer elgg; 
+		const CryptoPP::Integer elgg;
 
 		// DSA
-		const CryptoPP::Integer dsap;		
+		const CryptoPP::Integer dsap;
 		const CryptoPP::Integer dsaq;
-		const CryptoPP::Integer dsag;			
-	};	
-	
+		const CryptoPP::Integer dsag;
+	};
+
 	const CryptoConstants& GetCryptoConstants ();
-	
-	// DH/ElGamal	
-	#define elgp GetCryptoConstants ().elgp
-	#define elgg GetCryptoConstants ().elgg
+
+	// DH/ElGamal
+#define elgp GetCryptoConstants ().elgp
+#define elgg GetCryptoConstants ().elgg
 
 	// DSA
-	#define dsap GetCryptoConstants ().dsap	
-	#define dsaq GetCryptoConstants ().dsaq
-	#define dsag GetCryptoConstants ().dsag	
+#define dsap GetCryptoConstants ().dsap
+#define dsaq GetCryptoConstants ().dsaq
+#define dsag GetCryptoConstants ().dsag
 
 	// RSA
-	const int rsae = 65537;	
-}		
-}	
+	const int rsae = 65537;
+}
+}
 
 #endif
