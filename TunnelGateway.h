@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <vector>
+#include <memory>
 #include "I2NPProtocol.h"
 #include "TunnelBase.h"
 
@@ -13,11 +14,10 @@ namespace tunnel
 	class TunnelGatewayBuffer
 	{
 		public:
-			TunnelGatewayBuffer (uint32_t tunnelID): m_TunnelID (tunnelID),
-				m_CurrentTunnelDataMsg (nullptr), m_RemainingSize (0) {};
+			TunnelGatewayBuffer (uint32_t tunnelID);
 			~TunnelGatewayBuffer ();
 			void PutI2NPMsg (const TunnelMessageBlock& block);
-			const std::vector<I2NPMessage *>& GetTunnelDataMsgs () const { return m_TunnelDataMsgs; };
+			const std::vector<std::shared_ptr<I2NPMessage> >& GetTunnelDataMsgs () const { return m_TunnelDataMsgs; };
 			void ClearTunnelDataMsgs ();
 			void CompleteCurrentTunnelDataMessage ();
 
@@ -28,9 +28,10 @@ namespace tunnel
 		private:
 
 			uint32_t m_TunnelID;
-			std::vector<I2NPMessage *> m_TunnelDataMsgs;
-			I2NPMessage * m_CurrentTunnelDataMsg;
+			std::vector<std::shared_ptr<I2NPMessage> > m_TunnelDataMsgs;
+			std::shared_ptr<I2NPMessage> m_CurrentTunnelDataMsg;
 			size_t m_RemainingSize;
+			uint8_t m_NonZeroRandomBuffer[TUNNEL_DATA_MAX_PAYLOAD_SIZE];
 	};
 
 	class TunnelGateway
