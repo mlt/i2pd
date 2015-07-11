@@ -110,6 +110,7 @@ namespace client
 			void ExtractParams (char * buf, std::map<std::string, std::string>& params);
 
 			void Connect (std::shared_ptr<const i2p::data::LeaseSet> remote);
+			void ConnectLeaseSet (i2p::data::IdentHash hash);
 			void HandleConnectLeaseSetRequestComplete (std::shared_ptr<i2p::data::LeaseSet> leaseSet);
 			void SendNamingLookupReply (const i2p::data::IdentityEx& identity);
 			void HandleNamingLookupLeaseSetRequestComplete (std::shared_ptr<i2p::data::LeaseSet> leaseSet, i2p::data::IdentHash ident);
