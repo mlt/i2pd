@@ -156,7 +156,7 @@ namespace util
 			// TODO: datadir parameter is useless because GetDataDir is called before OptionParser
 			// and mapArgs is not initialized yet
 			/*if (i2p::util::config::mapArgs.count("-datadir"))
-				path = boost::filesystem::system_complete(i2p::util::config::mapArgs["-datadir"]);
+			    path = boost::filesystem::system_complete(i2p::util::config::mapArgs["-datadir"]);
 			else */
 			path = GetDefaultDataDir();
 
@@ -423,13 +423,13 @@ namespace util
 		// code for parser tests
 		//{
 		//  i2p::util::http::url u_0("http://127.0.0.1:7070/asdasd?qqqqqqqqqqqq");
-		//	i2p::util::http::url u_1("http://user:password@site.com:8080/asdasd?qqqqqqqqqqqqq");
-		//	i2p::util::http::url u_2("http://user:password@site.com/asdasd?qqqqqqqqqqqqqq");
-		//	i2p::util::http::url u_3("http://user:@site.com/asdasd?qqqqqqqqqqqqq");
-		//	i2p::util::http::url u_4("http://user@site.com/asdasd?qqqqqqqqqqqq");
-		//	i2p::util::http::url u_5("http://@site.com:800/asdasd?qqqqqqqqqqqq");
-		//	i2p::util::http::url u_6("http://@site.com:err_port/asdasd?qqqqqqqqqqqq");
-		//	i2p::util::http::url u_7("http://user:password@site.com:err_port/asdasd?qqqqqqqqqqqq");
+		//  i2p::util::http::url u_1("http://user:password@site.com:8080/asdasd?qqqqqqqqqqqqq");
+		//  i2p::util::http::url u_2("http://user:password@site.com/asdasd?qqqqqqqqqqqqqq");
+		//  i2p::util::http::url u_3("http://user:@site.com/asdasd?qqqqqqqqqqqqq");
+		//  i2p::util::http::url u_4("http://user@site.com/asdasd?qqqqqqqqqqqq");
+		//  i2p::util::http::url u_5("http://@site.com:800/asdasd?qqqqqqqqqqqq");
+		//  i2p::util::http::url u_6("http://@site.com:err_port/asdasd?qqqqqqqqqqqq");
+		//  i2p::util::http::url u_7("http://user:password@site.com:err_port/asdasd?qqqqqqqqqqqq");
 		//}
 		void url::parse(const std::string& url_s)
 		{
@@ -551,7 +551,7 @@ namespace util
 			else
 				LogPrint (eLogWarning, "Interface for local address", localAddress.to_string (), " not found");
 
-			freeifaddrs	(ifaddr);
+			freeifaddrs (ifaddr);
 			return mtu;
 #elif defined(WIN32)
 

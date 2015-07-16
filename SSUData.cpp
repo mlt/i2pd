@@ -318,7 +318,7 @@ namespace transport
 			Fragment * fragment = new Fragment;
 			fragment->fragmentNum = fragmentNum;
 			uint8_t * buf = fragment->buf;
-			uint8_t	* payload = buf + sizeof (SSUHeader);
+			uint8_t * payload = buf + sizeof (SSUHeader);
 			*payload = DATA_FLAG_WANT_REPLY; // for compatibility
 			payload++;
 			*payload = 1; // always 1 message fragment per message

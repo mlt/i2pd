@@ -260,7 +260,7 @@ void RouterContext::UpdateStats ()
 bool RouterContext::Load ()
 {
 	std::ifstream fk (i2p::util::filesystem::GetFullPath (ROUTER_KEYS).c_str (), std::ifstream::binary | std::ofstream::in);
-	if (!fk.is_open ())	return false;
+	if (!fk.is_open ()) return false;
 
 	i2p::data::Keys keys;
 	fk.read ((char *)&keys, sizeof (keys));

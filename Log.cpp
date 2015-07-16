@@ -8,7 +8,7 @@ static const char * g_LogLevelStr[eNumLogLevels] =
 "error", // eLogError
 "warn",  // eLogWarning
 "info",  // eLogInfo
-"debug"	 // eLogDebug
+"debug"  // eLogDebug
 };
 
 void LogMsg::Process()

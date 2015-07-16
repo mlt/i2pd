@@ -49,7 +49,7 @@ class RouterContext: public i2p::garlic::GarlicDestination
 		void SetStatus (RouterStatus status) { m_Status = status; };
 
 		void UpdatePort (int port); // called from Daemon
-		void UpdateAddress (const boost::asio::ip::address& host);	// called from SSU or Daemon
+		void UpdateAddress (const boost::asio::ip::address& host);  // called from SSU or Daemon
 		bool AddIntroducer (const i2p::data::RouterInfo& routerInfo, uint32_t tag);
 		void RemoveIntroducer (const boost::asio::ip::udp::endpoint& e);
 		bool IsUnreachable () const;

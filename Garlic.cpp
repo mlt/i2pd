@@ -33,7 +33,7 @@ namespace garlic
 		m_SessionTags.back ().creationTime = i2p::util::GetSecondsSinceEpoch ();
 	}
 
-	GarlicRoutingSession::~GarlicRoutingSession	()
+	GarlicRoutingSession::~GarlicRoutingSession ()
 	{
 		for (auto it: m_UnconfirmedTagsMsgs)
 			delete it.second;

@@ -406,7 +406,7 @@ namespace transport
 					// if not peer test capable routers found pick any
 					router = i2p::data::netdb.GetRandomRouter ();
 					if (router && router->IsSSU ())
-						m_SSUServer->GetSession (router);  	// no peer test
+						m_SSUServer->GetSession (router);   // no peer test
 				}
 			}
 		}

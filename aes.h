@@ -19,10 +19,10 @@ namespace crypto
 #if defined(__x86_64__) // for Intel x64 
 			__asm__
 			(
-			    "movups	(%[buf]), %%xmm0 \n"
-			    "movups	(%[other]), %%xmm1 \n"
+			    "movups (%[buf]), %%xmm0 \n"
+			    "movups (%[other]), %%xmm1 \n"
 			    "pxor %%xmm1, %%xmm0 \n"
-			    "movups	%%xmm0, (%[buf]) \n"
+			    "movups %%xmm0, (%[buf]) \n"
 			    :
 			    : [buf]"r"(buf), [other]"r"(other.buf)
 			    : "%xmm0", "%xmm1", "memory"

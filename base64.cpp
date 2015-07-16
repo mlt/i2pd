@@ -60,7 +60,7 @@ namespace data
 	    const uint8_t * InBuffer,           /* Input buffer, binary data */
 	    size_t    InCount,              /* Number of bytes in the input buffer */
 	    char  * OutBuffer,          /* output buffer */
-	    size_t len			   /* length of output buffer */
+	    size_t len             /* length of output buffer */
 	)
 
 	{
@@ -142,8 +142,8 @@ namespace data
 	Base64ToByteStream (
 	    const char * InBuffer,           /* BASE64 encoded buffer */
 	    size_t    InCount,          /* Number of input bytes */
-	    uint8_t  * OutBuffer,	/* output buffer length */
-	    size_t len         	/* length of output buffer */
+	    uint8_t  * OutBuffer, /* output buffer length */
+	    size_t len            /* length of output buffer */
 	)
 	{
 		unsigned char * ps;

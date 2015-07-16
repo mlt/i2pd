@@ -862,7 +862,7 @@ namespace transport
 	void SSUSession::ProcessPeerTest (const uint8_t * buf, size_t len, const boost::asio::ip::udp::endpoint& senderEndpoint)
 	{
 		uint32_t nonce = bufbe32toh (buf); // 4 bytes
-		uint8_t size = buf[4];	// 1 byte
+		uint8_t size = buf[4];  // 1 byte
 		uint32_t address = (size == 4) ? buf32toh(buf + 5) : 0; // big endian, size bytes
 		uint16_t port = buf16toh(buf + size + 5); // big endian, 2 bytes
 		const uint8_t * introKey = buf + size + 7;
@@ -1031,7 +1031,7 @@ namespace transport
 		if (m_State == eSessionStateEstablished)
 		{
 			uint8_t buf[48 + 18] = {};
-			uint8_t	* payload = buf + sizeof (SSUHeader);
+			uint8_t * payload = buf + sizeof (SSUHeader);
 			*payload = 0; // flags
 			payload++;
 			*payload = 0; // num fragments
