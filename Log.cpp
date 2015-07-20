@@ -24,8 +24,12 @@ output << s.str();
 
 const std::string& Log::GetTimestamp ()
 {
-#if (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6)
+#if !defined(__APPLE__)
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6) && !defined(__APPLE__)
 auto ts = std::chrono::monotonic_clock::now ();
+#else
+auto ts = std::chrono::steady_clock::now ();
+#endif
 #else
 auto ts = std::chrono::steady_clock::now ();
 #endif
