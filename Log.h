@@ -50,8 +50,12 @@ private:
 
 	std::ostream * m_LogStream;
 	std::string m_Timestamp;
+#if !defined(__APPLE__)
 #if (__GNUC__ == 4) && (__GNUC_MINOR__ <= 6) // gcc 4.6
 	std::chrono::monotonic_clock::time_point m_LastTimestampUpdate;
+#else
+	std::chrono::steady_clock::time_point m_LastTimestampUpdate;
+#endif
 #else
 	std::chrono::steady_clock::time_point m_LastTimestampUpdate;
 #endif
