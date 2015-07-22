@@ -20,7 +20,7 @@ namespace i2p
 namespace transport
 {
 	NTCPSession::NTCPSession (NTCPServer& server, std::shared_ptr<const i2p::data::RouterInfo> in_RemoteRouter):
-		TransportSession (in_RemoteRouter),	m_Server (server), m_Socket (m_Server.GetService ()),
+		TransportSession (in_RemoteRouter), m_Server (server), m_Socket (m_Server.GetService ()),
 		m_TerminationTimer (m_Server.GetService ()), m_IsEstablished (false), m_IsTerminated (false),
 		m_ReceiveBufferOffset (0), m_NextMessage (nullptr), m_IsSending (false)
 	{
@@ -290,7 +290,7 @@ namespace transport
 		s.Insert (m_Establisher->phase1.pubKey, 256); // x
 		s.Insert (m_Establisher->phase2.pubKey, 256); // y
 		s.Insert (m_RemoteIdentity.GetIdentHash (), 32); // ident
-		s.Insert (tsA);	// tsA
+		s.Insert (tsA); // tsA
 		s.Insert (m_Establisher->phase2.encrypted.timestamp); // tsB
 		s.Sign (keys, buf);
 

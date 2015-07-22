@@ -406,7 +406,7 @@ namespace transport
 					// if not peer test capable routers found pick any
 					router = i2p::data::netdb.GetRandomRouter ();
 					if (router && router->IsSSU ())
-						m_SSUServer->GetSession (router);  	// no peer test
+						m_SSUServer->GetSession (router);   // no peer test
 				}
 			}
 		}
@@ -492,10 +492,14 @@ namespace transport
 
 	std::shared_ptr<const i2p::data::RouterInfo> Transports::GetRandomPeer () const
 	{
-		CryptoPP::RandomNumberGenerator& rnd = i2p::context.GetRandomNumberGenerator ();
-		auto it = m_Peers.begin ();
-		std::advance (it, rnd.GenerateWord32 (0, m_Peers.size () - 1));
-		return it != m_Peers.end () ? it->second.router : nullptr;
+		if (m_Peers.empty()) // ensure m.Peers.size() >= 1
+			return nullptr;
+
+		CryptoPP::RandomNumberGenerator& rnd = i2p::context.GetRandomNumberGenerator();
+		auto it = m_Peers.begin();
+		std::advance(it, rnd.GenerateWord32(0, m_Peers.size () - 1));
+
+		return it->second.router;
 	}
 }
 }

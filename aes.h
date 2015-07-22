@@ -19,10 +19,10 @@ namespace crypto
 #if defined(__x86_64__) // for Intel x64 
 			__asm__
 			(
-			    "movups	(%[buf]), %%xmm0 \n"
-			    "movups	(%[other]), %%xmm1 \n"
+			    "movups (%[buf]), %%xmm0 \n"
+			    "movups (%[other]), %%xmm1 \n"
 			    "pxor %%xmm1, %%xmm0 \n"
-			    "movups	%%xmm0, (%[buf]) \n"
+			    "movups %%xmm0, (%[buf]) \n"
 			    :
 			    : [buf]"r"(buf), [other]"r"(other.buf)
 			    : "%xmm0", "%xmm1", "memory"
@@ -141,6 +141,12 @@ namespace crypto
 		public:
 
 			CBCEncryption () { memset (m_LastBlock.buf, 0, 16); };
+			CBCEncryption(const AESKey& key, const uint8_t* iv)
+				: CBCEncryption()
+			{
+				SetKey(key);
+				SetIV(iv);
+			};
 
 			void SetKey (const AESKey& key) { m_ECBEncryption.SetKey (key); }; // 32 bytes
 			void SetIV (const uint8_t * iv) { memcpy (m_LastBlock.buf, iv, 16); }; // 16 bytes

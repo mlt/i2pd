@@ -160,6 +160,7 @@ struct I2NPMessage
 		memcpy (buf + offset, other.buf + other.offset, other.GetLength ());
 		len = offset + other.GetLength ();
 		from = other.from;
+		maxLen = other.maxLen;
 		return *this;
 	}
 
@@ -193,7 +194,7 @@ template<int sz>
 struct I2NPMessageBuffer: public I2NPMessage
 {
 	I2NPMessageBuffer () { buf = m_Buffer; maxLen = sz; };
-	uint8_t m_Buffer[sz + 16];
+	uint8_t m_Buffer[sz + 16] = {};
 };
 
 I2NPMessage * NewI2NPMessage ();

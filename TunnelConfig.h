@@ -86,7 +86,7 @@ namespace tunnel
 
 		void CreateBuildRequestRecord (uint8_t * record, uint32_t replyMsgID) const
 		{
-			uint8_t clearText[BUILD_REQUEST_RECORD_CLEAR_TEXT_SIZE];
+			uint8_t clearText[BUILD_REQUEST_RECORD_CLEAR_TEXT_SIZE] = {};
 			htobe32buf (clearText + BUILD_REQUEST_RECORD_RECEIVE_TUNNEL_OFFSET, tunnelID);
 			memcpy (clearText + BUILD_REQUEST_RECORD_OUR_IDENT_OFFSET, router->GetIdentHash (), 32);
 			htobe32buf (clearText + BUILD_REQUEST_RECORD_NEXT_TUNNEL_OFFSET, nextTunnelID);

@@ -59,11 +59,11 @@ namespace crypto
 	{
 		static CryptoConstants cryptoConstants =
 		{
-			{elgp_, 256},	// elgp
-			{2},			// elgg
-			{dsap_, 128},	// dsap
-			{dsaq_, 20},	// dsaq
-			{dsag_, 128}	// dsag
+			{elgp_, 256},   // elgp
+			{2},            // elgg
+			{dsap_, 128},   // dsap
+			{dsaq_, 20},    // dsaq
+			{dsag_, 128}    // dsag
 		};
 		return cryptoConstants;
 	}

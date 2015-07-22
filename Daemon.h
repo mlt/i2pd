@@ -53,6 +53,8 @@ namespace util
 	class DaemonLinux : public Daemon_Singleton
 	{
 		public:
+			DaemonLinux() = default;
+
 			static DaemonLinux& Instance()
 			{
 				static DaemonLinux instance;
