@@ -623,7 +623,7 @@ namespace util
 			return fallback;
 		}
 
-		int GetMTUWindowsIpv6(sockaddr_in inputAddress, int fallback)
+		int GetMTUWindowsIpv6(sockaddr_in6 inputAddress, int fallback)
 		{
 			ULONG outBufLen = 0;
 			PIP_ADAPTER_ADDRESSES pAddresses = nullptr;
@@ -722,7 +722,7 @@ namespace util
 			else
 			{
 				LogPrint(eLogError, "GetMTU() has failed: address family is not supported");
-				return result;
+				return fallback;
 			}
 
 		}
