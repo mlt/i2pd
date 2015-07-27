@@ -107,7 +107,10 @@ namespace util
 				StartLog (""); // write to stdout
 		}
 
-		d.httpServer = new i2p::util::HTTPServer(i2p::util::config::GetArg("-httpport", 7070));
+		d.httpServer = new i2p::util::HTTPServer(
+		    i2p::util::config::GetArg("-httpaddress", "127.0.0.1"),
+		    i2p::util::config::GetArg("-httpport", 7070)
+		);
 		d.httpServer->Start();
 		LogPrint("HTTP Server started");
 		i2p::data::netdb.Start();

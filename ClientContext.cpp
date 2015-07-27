@@ -42,10 +42,18 @@ namespace client
 		std::string proxyKeys = i2p::util::config::GetArg("-proxykeys", "");
 		if (proxyKeys.length () > 0)
 			localDestination = LoadLocalDestination (proxyKeys, false);
-		m_HttpProxy = new i2p::proxy::HTTPProxy(i2p::util::config::GetArg("-httpproxyport", 4446), localDestination);
+		m_HttpProxy = new i2p::proxy::HTTPProxy(
+		    i2p::util::config::GetArg("-httpproxyaddress", "127.0.0.1"),
+		    i2p::util::config::GetArg("-httpproxyport", 4446),
+		    localDestination
+		);
 		m_HttpProxy->Start();
 		LogPrint("HTTP Proxy started");
-		m_SocksProxy = new i2p::proxy::SOCKSProxy(i2p::util::config::GetArg("-socksproxyport", 4447), localDestination);
+		m_SocksProxy = new i2p::proxy::SOCKSProxy(
+		    i2p::util::config::GetArg("-socksproxyaddress", "127.0.0.1"),
+		    i2p::util::config::GetArg("-socksproxyport", 4447),
+		    localDestination
+		);
 		m_SocksProxy->Start();
 		LogPrint("SOCKS Proxy Started");
 
@@ -58,9 +66,15 @@ namespace client
 			if (ircKeys.length () > 0)
 				localDestination = LoadLocalDestination (ircKeys, false);
 			auto ircPort = i2p::util::config::GetArg("-ircport", 6668);
-			auto ircTunnel = new I2PClientTunnel (ircDestination, ircPort, localDestination);
+			auto ircTunnel = new I2PClientTunnel(
+			    ircDestination, i2p::util::config::GetArg("-ircaddress", "127.0.0.1"),
+			    ircPort, localDestination
+			);
 			ircTunnel->Start ();
-			m_ClientTunnels.insert (std::make_pair(ircPort, std::unique_ptr<I2PClientTunnel>(ircTunnel)));
+			// TODO: allow muliple tunnels on the same port (but on a different address)
+			m_ClientTunnels.insert(std::make_pair(
+			                           ircPort, std::unique_ptr<I2PClientTunnel>(ircTunnel)
+			                       ));
 			LogPrint("IRC tunnel started");
 		}
 		std::string eepKeys = i2p::util::config::GetArg("-eepkeys", "");
@@ -79,7 +93,9 @@ namespace client
 		int samPort = i2p::util::config::GetArg("-samport", 0);
 		if (samPort)
 		{
-			m_SamBridge = new SAMBridge (samPort);
+			m_SamBridge = new SAMBridge(
+			    i2p::util::config::GetArg("-samaddress", "127.0.0.1"), samPort
+			);
 			m_SamBridge->Start ();
 			LogPrint("SAM bridge started");
 		}
@@ -88,7 +104,9 @@ namespace client
 		int bobPort = i2p::util::config::GetArg("-bobport", 0);
 		if (bobPort)
 		{
-			m_BOBCommandChannel = new BOBCommandChannel (bobPort);
+			m_BOBCommandChannel = new BOBCommandChannel(
+			    i2p::util::config::GetArg("-bobaddress", "127.0.0.1"), bobPort
+			);
 			m_BOBCommandChannel->Start ();
 			LogPrint("BOB command channel started");
 		}
@@ -97,8 +115,11 @@ namespace client
 		int i2pcontrolPort = i2p::util::config::GetArg("-i2pcontrolport", 0);
 		if (i2pcontrolPort)
 		{
-			m_I2PControlService = new I2PControlService (i2pcontrolPort);
-			m_I2PControlService->Start ();
+			m_I2PControlService = new I2PControlService(
+			    i2p::util::config::GetArg("-i2pcontroladdress", "127.0.0.1"),
+			    i2pcontrolPort
+			);
+			m_I2PControlService->Start();
 			LogPrint("I2PControl started");
 		}
 		m_AddressBook.Start ();
@@ -261,11 +282,14 @@ namespace client
 		boost::property_tree::ptree pt;
 		try
 		{
-			boost::property_tree::read_ini (i2p::util::filesystem::GetFullPath (TUNNELS_CONFIG_FILENAME), pt);
+			boost::property_tree::read_ini(
+			    i2p::util::filesystem::GetFullPath(TUNNELS_CONFIG_FILENAME),
+			    pt
+			);
 		}
-		catch (std::exception& ex)
+		catch (const std::exception& ex)
 		{
-			LogPrint (eLogWarning, "Can't read ", TUNNELS_CONFIG_FILENAME, ": ", ex.what ());
+			LogPrint(eLogWarning, "Can't read ", TUNNELS_CONFIG_FILENAME, ": ", ex.what ());
 			return;
 		}
 
@@ -282,14 +306,21 @@ namespace client
 					std::string dest = section.second.get<std::string> (I2P_CLIENT_TUNNEL_DESTINATION);
 					int port = section.second.get<int> (I2P_CLIENT_TUNNEL_PORT);
 					// optional params
-					std::string keys = section.second.get (I2P_CLIENT_TUNNEL_KEYS, "");
-					int destinationPort = section.second.get (I2P_CLIENT_TUNNEL_DESTINATION_PORT, 0);
+					std::string address = section.second.get(
+					                          I2P_CLIENT_TUNNEL_ADDRESS, "127.0.0.1"
+					                      );
+					std::string keys = section.second.get(I2P_CLIENT_TUNNEL_KEYS, "");
+					int destinationPort = section.second.get(I2P_CLIENT_TUNNEL_DESTINATION_PORT, 0);
 
 					std::shared_ptr<ClientDestination> localDestination = nullptr;
 					if (keys.length () > 0)
 						localDestination = LoadLocalDestination (keys, false);
-					auto clientTunnel = new I2PClientTunnel (dest, port, localDestination, destinationPort);
-					if (m_ClientTunnels.insert (std::make_pair (port, std::unique_ptr<I2PClientTunnel>(clientTunnel))).second)
+
+					auto clientTunnel = new I2PClientTunnel(
+					    dest, address, port, localDestination, destinationPort
+					);
+					// TODO: allow muliple tunnels on the same port (but on a different address)
+					if (m_ClientTunnels.insert(std::make_pair(port, std::unique_ptr<I2PClientTunnel>(clientTunnel))).second)
 						clientTunnel->Start ();
 					else
 						LogPrint (eLogError, "I2P client tunnel with port ", port, " already exists");
@@ -332,7 +363,7 @@ namespace client
 					LogPrint (eLogWarning, "Unknown section type=", type, " of ", name, " in ", TUNNELS_CONFIG_FILENAME);
 
 			}
-			catch (std::exception& ex)
+			catch (const std::exception& ex)
 			{
 				LogPrint (eLogError, "Can't read tunnel ", name, " params: ", ex.what ());
 			}
