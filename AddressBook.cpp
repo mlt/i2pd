@@ -215,7 +215,7 @@ namespace client
 		auto pos = address.find(".b32.i2p");
 		if (pos != std::string::npos)
 		{
-			Base32ToByteStream (address.c_str(), pos, ident, 32);
+			i2p::util::Base32ToByteStream (address.c_str(), pos, ident, 32);
 			return true;
 		}
 		else
