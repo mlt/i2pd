@@ -23,10 +23,6 @@ namespace api
 
     void StartI2P (std::ostream * logStream)
     {
-        if (logStream)
-            StartLog (logStream);
-        else
-            StartLog (i2p::util::filesystem::GetAppName () + ".log");
         i2p::data::netdb.Start();
         LogPrint("NetDB started");
         i2p::transport::transports.Start();
@@ -44,7 +40,6 @@ namespace api
         LogPrint("Transports stopped");
         i2p::data::netdb.Stop();
         LogPrint("NetDB stopped");
-        StopLog ();
     }
 
     i2p::client::ClientDestination * CreateLocalDestination (const i2p::data::PrivateKeys& keys, bool isPublic,

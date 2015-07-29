@@ -102,7 +102,7 @@ namespace proxy
 
     void HTTPProxyHandler::ExtractRequest()
     {
-        LogPrint(eLogDebug,"--- HTTP Proxy method is: ", m_method, "\nRequest is: ", m_url);
+        LogPrint(eLogDebug,"--- HTTP Proxy method is: ", m_method, " Request is: ", m_url);
         std::string server="";
         std::string port="80";
         boost::regex rHTTP("http://(.*?)(:(\\d+))?(/.*)");
@@ -114,7 +114,7 @@ namespace proxy
             if (m[2].str() != "")  port=m[3].str();
             path=m[4].str();
         }
-        LogPrint(eLogDebug,"--- HTTP Proxy server is: ",server, " port is: ", port, "\n path is: ",path);
+        LogPrint(eLogDebug,"--- HTTP Proxy server is: ",server, " port is: ", port, " path is: ",path);
         m_address = server;
         m_port = boost::lexical_cast<int>(port);
         m_path = path;

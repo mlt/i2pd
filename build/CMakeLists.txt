@@ -9,6 +9,7 @@ option(WITH_BINARY    "Build binary" ON)
 option(WITH_STATIC    "Static build" OFF)
 option(WITH_UPNP "Include support for UPnP client" OFF)
 option(WITH_PCH "Use precompiled header" OFF)
+option(WITH_LOG "Use logging" ON)
 
 # paths
 set ( CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules" )
@@ -25,7 +26,6 @@ set (COMMON_SRC
   "${CMAKE_SOURCE_DIR}/crypto/Signature.cpp"
   "${CMAKE_SOURCE_DIR}/util/base64.cpp"
   "${CMAKE_SOURCE_DIR}/util/util.cpp"
-  "${CMAKE_SOURCE_DIR}/util/Log.cpp"
   "${CMAKE_SOURCE_DIR}/tunnel/TransitTunnel.cpp"
   "${CMAKE_SOURCE_DIR}/tunnel/Tunnel.cpp"
   "${CMAKE_SOURCE_DIR}/tunnel/TunnelGateway.cpp"
@@ -51,6 +51,13 @@ set (COMMON_SRC
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
   list (APPEND COMMON_SRC "${CMAKE_SOURCE_DIR}/util/I2PEndian.cpp")
+endif ()
+
+if (WITH_LOG)
+  list (APPEND COMMON_SRC "${CMAKE_SOURCE_DIR}/util/Log.cpp")
+  list (APPEND BOOST_COMPONENTS log_setup log)
+else ()
+  add_definitions(-DI2PD_NO_LOGGING)
 endif ()
 
 add_library(common ${COMMON_SRC})
@@ -188,14 +195,14 @@ if (WITH_PCH)
   include_directories(${CMAKE_CURRENT_SOURCE_DIR}/..)
   add_library(stdafx STATIC "${CMAKE_SOURCE_DIR}/stdafx.cpp")
   if(MSVC)
-    target_compile_options(stdafx PRIVATE /Ycstdafx.h /Zm135)
+    target_compile_options(stdafx PRIVATE /Ycstdafx.h /Zm164)
     add_custom_command(TARGET stdafx POST_BUILD
       COMMAND xcopy /y stdafx.dir\\$<CONFIG>\\*.pdb common.dir\\$<CONFIG>\\
       COMMAND xcopy /y stdafx.dir\\$<CONFIG>\\*.pdb i2pd-bin.dir\\$<CONFIG>\\
       COMMAND xcopy /y stdafx.dir\\$<CONFIG>\\*.pdb i2pd.dir\\$<CONFIG>\\
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
       )
-    target_compile_options(common PRIVATE /FIstdafx.h /Yustdafx.h /Zm135 "/Fp${CMAKE_BINARY_DIR}/stdafx.dir/$<CONFIG>/stdafx.pch")
+    target_compile_options(common PRIVATE /FIstdafx.h /Yustdafx.h /Zm164 "/Fp${CMAKE_BINARY_DIR}/stdafx.dir/$<CONFIG>/stdafx.pch")
   else()
     string(TOUPPER ${CMAKE_BUILD_TYPE} BTU)
     get_directory_property(DEFS DEFINITIONS)
@@ -208,7 +215,11 @@ if (WITH_PCH)
   target_link_libraries(common stdafx)
 endif()
 
-find_package ( Boost COMPONENTS system filesystem regex program_options date_time thread chrono REQUIRED )
+find_package ( Boost REQUIRED
+    ${BOOST_COMPONENTS}
+    system filesystem regex program_options date_time
+    thread chrono
+  )
 if(NOT DEFINED Boost_INCLUDE_DIRS)
   message(SEND_ERROR "Boost is not found, or your boost version was bellow 1.46. Please download Boost!")
 endif()
@@ -257,7 +268,7 @@ if (WITH_BINARY)
 
   if (WITH_PCH)
     if (MSVC)
-      target_compile_options("${PROJECT_NAME}-bin" PRIVATE /FIstdafx.h /Yustdafx.h /Zm135 "/Fp${CMAKE_BINARY_DIR}/stdafx.dir/$<CONFIG>/stdafx.pch")
+      target_compile_options("${PROJECT_NAME}-bin" PRIVATE /FIstdafx.h /Yustdafx.h /Zm164 "/Fp${CMAKE_BINARY_DIR}/stdafx.dir/$<CONFIG>/stdafx.pch")
     else()
       target_compile_options("${PROJECT_NAME}-bin" PRIVATE -include stdafx.h)
     endif()
@@ -291,7 +302,7 @@ if (WITH_LIBRARY)
   if (WITH_PCH)
     if (MSVC)
       add_dependencies(${PROJECT_NAME} stdafx)
-      target_compile_options(${PROJECT_NAME} PRIVATE /FIstdafx.h /Yustdafx.h /Zm135 "/Fp${CMAKE_BINARY_DIR}/stdafx.dir/$<CONFIG>/stdafx.pch")
+      target_compile_options(${PROJECT_NAME} PRIVATE /FIstdafx.h /Yustdafx.h /Zm164 "/Fp${CMAKE_BINARY_DIR}/stdafx.dir/$<CONFIG>/stdafx.pch")
     else()
       target_compile_options(${PROJECT_NAME} PRIVATE -include stdafx.h)
     endif()

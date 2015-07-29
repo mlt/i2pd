@@ -48,6 +48,24 @@
 #include <boost/program_options/parsers.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include "util/Log.h" // should rarely change
+/*
+#ifndef I2PD_NO_LOGGING
+#include <boost/log/sources/severity_channel_logger.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+#include <boost/log/attributes/attribute_set.hpp>
+#include <boost/log/attributes/attribute_value_set.hpp>
+#include <boost/log/attributes/mutable_constant.hpp>
+#include <boost/log/attributes/named_scope.hpp>
+#include <boost/log/attributes/scoped_attribute.hpp>
+#include <boost/log/keywords/channel.hpp>
+#include <boost/log/keywords/severity.hpp>
+#include <boost/log/utility/setup/formatter_parser.hpp>
+#include <boost/log/utility/setup/from_stream.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#endif
+*/
+
 #include <cryptopp/aes.h>
 #include <cryptopp/adler32.h>
 #include <cryptopp/asn.h>

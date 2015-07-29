@@ -53,13 +53,19 @@ namespace i2p
             i2p::util::config::OptionParser(argc, argv);
             i2p::context.Init ();
 
-            LogPrint("\n\n\n\ni2pd starting\n");
-            LogPrint("Version ", VERSION);
-            LogPrint("data directory: ", i2p::util::filesystem::GetDataDir().string());
+            const boost::filesystem::path& dataDir = i2p::util::filesystem::GetDataDir ();
             i2p::util::filesystem::ReadConfigFile(i2p::util::config::mapArgs, i2p::util::config::mapMultiArgs);
+            // TODO: remove hardcoded name, perhaps use single settings container shared with with i2pd settings
+#ifndef I2PD_NO_LOGGING
+            i2p::log::log_setup ((dataDir / "i2p.logging").string()); // don't bother passing path to avoid includes
+            isLogging = i2p::util::config::GetArg("-log", 1);
+            if (!isLogging)
+                boost::log::core::get ()->set_logging_enabled (false);
+#endif
+            LogPrint("i2pd ", VERSION, " starting");
+            LogPrint("data directory: ", dataDir);
 
             isDaemon = i2p::util::config::GetArg("-daemon", 0);
-            isLogging = i2p::util::config::GetArg("-log", 1);
 
             int port = i2p::util::config::GetArg("-port", 0);
             if (port)
@@ -88,23 +94,6 @@ namespace i2p
             
         bool Daemon_Singleton::start()
         {
-            // initialize log           
-            if (isLogging)
-            {
-                if (isDaemon)
-                {
-                    std::string logfile_path = IsService () ? "/var/log" : i2p::util::filesystem::GetDataDir().string();
-#ifndef _WIN32
-                    logfile_path.append("/i2pd.log");
-#else
-                    logfile_path.append("\\i2pd.log");
-#endif
-                    StartLog (logfile_path);
-                }
-                else
-                    StartLog (""); // write to stdout
-            }
-
             d.httpServer = new i2p::util::HTTPServer(
                 i2p::util::config::GetArg("-httpaddress", "127.0.0.1"),
                 i2p::util::config::GetArg("-httpport", 7070)
@@ -135,8 +124,6 @@ namespace i2p
             LogPrint("NetDB stopped");
             d.httpServer->Stop();
             LogPrint("HTTP Server stopped");
-
-            StopLog ();
 
             delete d.httpServer; d.httpServer = nullptr;
 
