@@ -548,7 +548,7 @@ namespace net {
                 LPSOCKADDR lpAddr = pUnicast->Address.lpSockaddr;
                 sockaddr_in* localInterfaceAddress = (sockaddr_in*) lpAddr;
                 if(localInterfaceAddress->sin_addr.S_un.S_addr == inputAddress.sin_addr.S_un.S_addr) {
-                    result = pAddresses->Mtu;
+                    int result = pAddresses->Mtu;
                     FREE(pAddresses);
                     return result;
                 }
@@ -610,7 +610,7 @@ namespace net {
                         found_address = true;
                     }
                 } if (found_address) {
-                    result = pAddresses->Mtu;
+                    int result = pAddresses->Mtu;
                     FREE(pAddresses);
                     pAddresses = nullptr;
                     return result;
