@@ -6,7 +6,6 @@
 #include <boost/lexical_cast.hpp>
 #include "util/base64.h"
 #include "Identity.h"
-#include "util/Log.h"
 #include "Destination.h"
 #include "ClientContext.h"
 #include "SAM.h"
@@ -18,7 +17,7 @@ namespace client
     SAMSocket::SAMSocket (SAMBridge& owner): 
         m_Owner (owner), m_Socket (m_Owner.GetService ()), m_Timer (m_Owner.GetService ()),
         m_BufferOffset (0), m_SocketType (eSAMSocketTypeUnknown), m_IsSilent (false), 
-        m_Stream (nullptr), m_Session (nullptr)
+        m_Stream (nullptr), m_Session (nullptr), I2PD_DEFINE_LOGGER
     {
     }
 
@@ -725,7 +724,7 @@ namespace client
     }
 
     void SAMBridge::Run () 
-    { 
+    {
         while (m_IsRunning)
         {
             try
@@ -748,6 +747,7 @@ namespace client
 
     void SAMBridge::HandleAccept(const boost::system::error_code& ecode, std::shared_ptr<SAMSocket> socket)
     {
+        BOOST_LOG_FUNCTION();
         if (!ecode)
         {
             boost::system::error_code ec;

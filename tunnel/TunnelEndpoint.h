@@ -6,12 +6,13 @@
 #include <string>
 #include "I2NPProtocol.h"
 #include "TunnelBase.h"
+#include "util/Log.h"
 
 namespace i2p
 {
 namespace tunnel
 {
-    class TunnelEndpoint
+    class TunnelEndpoint: I2PD_LOG_ENABLED
     {   
         struct TunnelMessageBlockEx: public TunnelMessageBlock
         {
@@ -27,7 +28,8 @@ namespace tunnel
         
         public:
 
-            TunnelEndpoint (bool isInbound): m_IsInbound (isInbound), m_NumReceivedBytes (0) {};
+            TunnelEndpoint (bool isInbound): m_IsInbound (isInbound), m_NumReceivedBytes (0)
+                , I2PD_DEFINE_LOGGER{};
             ~TunnelEndpoint ();
             size_t GetNumReceivedBytes () const { return m_NumReceivedBytes; };
             

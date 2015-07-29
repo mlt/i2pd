@@ -8,6 +8,7 @@
 #include "util/base64.h"
 #include "crypto/ElGamal.h"
 #include "crypto/Signature.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -229,11 +230,11 @@ namespace data
     XORMetric operator^(const IdentHash& key1, const IdentHash& key2);  
     
     // destination for delivery instuctions
-    class RoutingDestination
+    class RoutingDestination: I2PD_LOG_ENABLED
     {
         public:
 
-            RoutingDestination () {};
+            RoutingDestination(): I2PD_DEFINE_LOGGER { };
             virtual ~RoutingDestination () {};
             
             virtual const IdentHash& GetIdentHash () const = 0;

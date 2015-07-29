@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <boost/bind.hpp>
-#include "util/Log.h"
 #include "util/Timestamp.h"
 #include "NetDb.h"
 #include "SSU.h"
@@ -26,7 +25,7 @@ namespace transport
 
     SSUData::SSUData (SSUSession& session):
         m_Session (session), m_ResendTimer (session.GetService ()), m_DecayTimer (session.GetService ()),
-        m_IncompleteMessagesCleanupTimer (session.GetService ())
+        m_IncompleteMessagesCleanupTimer (session.GetService ()), I2PD_DEFINE_LOGGER
     {
         m_MaxPacketSize = session.IsV6 () ? SSU_V6_MAX_PACKET_SIZE : SSU_V4_MAX_PACKET_SIZE;
         m_PacketSize = m_MaxPacketSize;

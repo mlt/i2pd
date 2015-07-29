@@ -19,6 +19,7 @@
 #include "RouterInfo.h"
 #include "I2NPProtocol.h"
 #include "Identity.h"
+#include "util/Log.h"
 
 #ifdef USE_UPNP
 #include "UPnP.h"
@@ -73,7 +74,7 @@ namespace transport
     
     const size_t SESSION_CREATION_TIMEOUT = 10; // in seconds
     const uint32_t LOW_BANDWIDTH_LIMIT = 32*1024; // 32KBs
-    class Transports
+    class Transports: I2PD_LOG_ENABLED
     {
         public:
 

@@ -1,6 +1,5 @@
 #include <string.h>
 #include <boost/bind.hpp>
-#include "util/Log.h"
 #include "util/Timestamp.h"
 #include "RouterContext.h"
 #include "NetDb.h"
@@ -15,6 +14,7 @@ namespace transport
         m_Endpoint (boost::asio::ip::udp::v4 (), port), m_EndpointV6 (boost::asio::ip::udp::v6 (), port), 
         m_Socket (m_ReceiversService, m_Endpoint), m_SocketV6 (m_ReceiversService), 
         m_IntroducersUpdateTimer (m_Service), m_PeerTestsCleanupTimer (m_Service)   
+        , I2PD_DEFINE_LOGGER
     {
         m_Socket.set_option (boost::asio::socket_base::receive_buffer_size (65535));
         m_Socket.set_option (boost::asio::socket_base::send_buffer_size (65535));

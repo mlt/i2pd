@@ -20,6 +20,7 @@ namespace data
     RouterInfo::RouterInfo (const std::string& fullPath):
         m_FullPath (fullPath), m_IsUpdated (false), m_IsUnreachable (false), 
         m_SupportedTransports (0), m_Caps (0)
+        , I2PD_DEFINE_LOGGER
     {
         m_Buffer = new uint8_t[MAX_RI_BUFFER_SIZE];
         ReadFromFile ();
@@ -27,6 +28,7 @@ namespace data
 
     RouterInfo::RouterInfo (const uint8_t * buf, int len):
         m_IsUpdated (true), m_IsUnreachable (false), m_SupportedTransports (0), m_Caps (0)
+        , I2PD_DEFINE_LOGGER
     {
         m_Buffer = new uint8_t[MAX_RI_BUFFER_SIZE];
         memcpy (m_Buffer, buf, len);
@@ -57,6 +59,7 @@ namespace data
         
     void RouterInfo::SetRouterIdentity (const IdentityEx& identity)
     {   
+        I2PD_LOG_INSTANCE( GetIdentHashAbbreviation () );
         m_RouterIdentity = identity;
         m_Timestamp = i2p::util::GetMillisecondsSinceEpoch ();
     }

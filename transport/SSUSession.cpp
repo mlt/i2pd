@@ -2,7 +2,6 @@
 #include <cryptopp/dh.h>
 #include <cryptopp/sha.h>
 #include "crypto/CryptoConst.h"
-#include "util/Log.h"
 #include "util/Timestamp.h"
 #include "RouterContext.h"
 #include "Transports.h"
@@ -18,6 +17,7 @@ namespace transport
         m_Server (server), m_RemoteEndpoint (remoteEndpoint), m_Timer (GetService ()), 
         m_PeerTest (peerTest),m_State (eSessionStateUnknown), m_IsSessionKey (false), 
         m_RelayTag (0),m_Data (*this), m_IsDataReceived (false)
+        , I2PD_DEFINE_LOGGER
     {
         m_CreationTime = i2p::util::GetSecondsSinceEpoch ();
     }
@@ -774,6 +774,7 @@ namespace transport
 
     void SSUSession::Established ()
     {
+        I2PD_LOG_INSTANCE(std::string("[").append( m_RemoteIdentity.ToBase64().substr(0,4) ).append("]"));
         m_State = eSessionStateEstablished;
         if (m_DHKeysPair)
         {

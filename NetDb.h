@@ -23,7 +23,7 @@ namespace i2p
 namespace data
 {       
     
-    class NetDb
+    class NetDb: I2PD_LOG_ENABLED
     {
         public:
 

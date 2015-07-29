@@ -4,7 +4,6 @@
 #include <cryptopp/dh.h>
 #include <cryptopp/adler32.h>
 #include "util/base64.h"
-#include "util/Log.h"
 #include "util/Timestamp.h"
 #include "crypto/CryptoConst.h"
 #include "I2NPProtocol.h"
@@ -23,6 +22,7 @@ namespace transport
         TransportSession (in_RemoteRouter), m_Server (server), m_Socket (m_Server.GetService ()), 
         m_TerminationTimer (m_Server.GetService ()), m_IsEstablished (false), m_IsTerminated (false),
         m_ReceiveBufferOffset (0), m_NextMessage (nullptr), m_IsSending (false)
+        , I2PD_DEFINE_LOGGER
     {       
         m_DHKeysPair = transports.GetNextDHKeysPair ();
         m_Establisher = new Establisher;
@@ -713,6 +713,7 @@ namespace transport
     NTCPServer::NTCPServer (int port):
         m_IsRunning (false), m_Thread (nullptr), m_Work (m_Service), 
         m_NTCPAcceptor (nullptr), m_NTCPV6Acceptor (nullptr)
+        , I2PD_DEFINE_LOGGER
     {
     }
         

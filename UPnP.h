@@ -21,7 +21,7 @@ namespace i2p
 {
 namespace transport
 {
-    class UPnP
+    class UPnP: I2PD_LOG_ENABLED
     {
     public:
 

@@ -14,6 +14,7 @@
 #include "LeaseSet.h"
 #include "util/Queue.h"
 #include "Identity.h"
+#include "util/Log.h"
 
 namespace i2p
 {   
@@ -55,7 +56,7 @@ namespace garlic
     };
         
     class GarlicDestination;
-    class GarlicRoutingSession: public std::enable_shared_from_this<GarlicRoutingSession>
+    class GarlicRoutingSession: public std::enable_shared_from_this<GarlicRoutingSession>, I2PD_LOG_ENABLED
     {
             enum LeaseSetUpdateStatus
             {
@@ -116,11 +117,11 @@ namespace garlic
             CryptoPP::AutoSeededRandomPool m_Rnd;
     };  
     
-    class GarlicDestination: public i2p::data::LocalDestination
+    class GarlicDestination: public i2p::data::LocalDestination, I2PD_LOG_ENABLED
     {
         public:
 
-            GarlicDestination (): m_LastTagsCleanupTime (0) {};
+            GarlicDestination (): m_LastTagsCleanupTime (0), I2PD_DEFINE_LOGGER {};
             ~GarlicDestination ();
 
             std::shared_ptr<GarlicRoutingSession> GetRoutingSession (std::shared_ptr<const i2p::data::RoutingDestination> destination, bool attachLeaseSet);    

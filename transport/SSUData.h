@@ -11,6 +11,7 @@
 #include "I2NPProtocol.h"
 #include "Identity.h"
 #include "RouterInfo.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -76,7 +77,7 @@ namespace transport
     };  
     
     class SSUSession;
-    class SSUData
+    class SSUData: I2PD_LOG_ENABLED
     {
         public:
 

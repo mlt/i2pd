@@ -14,6 +14,7 @@
 #include "RouterInfo.h"
 #include "I2NPProtocol.h"
 #include "TransportSession.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -48,6 +49,7 @@ namespace transport
 
     class NTCPServer;
     class NTCPSession: public TransportSession, public std::enable_shared_from_this<NTCPSession>
+        , I2PD_LOG_ENABLED
     {
         public:
 
@@ -135,7 +137,7 @@ namespace transport
     };  
 
     // TODO: move to NTCP.h/.cpp
-    class NTCPServer
+    class NTCPServer: I2PD_LOG_ENABLED
     {
         public:
 

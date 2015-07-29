@@ -13,6 +13,7 @@
 #include "LeaseSet.h"
 #include "Streaming.h"
 #include "Destination.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -71,7 +72,7 @@ namespace client
 
     class SAMBridge;
     struct SAMSession;
-    class SAMSocket: public std::enable_shared_from_this<SAMSocket>
+    class SAMSocket: public std::enable_shared_from_this<SAMSocket>, I2PD_LOG_ENABLED
     {
         public:
 

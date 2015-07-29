@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <cassert>
 #include <boost/lexical_cast.hpp>
-#include "util/Log.h"
 #include "util/util.h"
 #include "crypto/ElGamal.h"
 #include "util/Timestamp.h"
@@ -18,6 +17,7 @@ namespace client
         m_IsRunning (false), m_Thread (nullptr), m_Work (m_Service),    
         m_Keys (keys), m_IsPublic (isPublic), m_PublishReplyToken (0),
         m_DatagramDestination (nullptr), m_PublishConfirmationTimer (m_Service), m_CleanupTimer (m_Service)
+        , I2PD_DEFINE_LOGGER
     {
         i2p::crypto::GenerateElGamalKeyPair(i2p::context.GetRandomNumberGenerator (), m_EncryptionPrivateKey, m_EncryptionPublicKey);
         int inboundTunnelLen = DEFAULT_INBOUND_TUNNEL_LENGTH;

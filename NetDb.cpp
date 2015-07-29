@@ -25,6 +25,7 @@ namespace data
     NetDb netdb;
 
     NetDb::NetDb (): m_IsRunning (false), m_Thread (nullptr), m_Reseeder (nullptr)
+        , I2PD_DEFINE_LOGGER
     {
     }
     

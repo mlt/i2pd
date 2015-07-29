@@ -5,7 +5,6 @@
 #include <vector> 
 #include <cryptopp/sha.h>
 #include "RouterContext.h"
-#include "util/Log.h"
 #include "util/Timestamp.h"
 #include "I2NPProtocol.h"
 #include "transport/Transports.h"
@@ -19,6 +18,7 @@ namespace tunnel
     
     Tunnel::Tunnel (std::shared_ptr<const TunnelConfig> config): 
         m_Config (config), m_Pool (nullptr), m_State (eTunnelStatePending), m_IsRecreated (false)
+        , I2PD_DEFINE_LOGGER
     {
     }   
 
@@ -206,6 +206,7 @@ namespace tunnel
     
     Tunnels::Tunnels (): m_IsRunning (false), m_Thread (nullptr),
         m_NumSuccesiveTunnelCreations (0), m_NumFailedTunnelCreations (0)
+        , I2PD_DEFINE_LOGGER
     {
     }
     

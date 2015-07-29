@@ -17,6 +17,7 @@
 #include "TunnelGateway.h"
 #include "TunnelBase.h"
 #include "I2NPProtocol.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -41,7 +42,7 @@ namespace tunnel
     
     class OutboundTunnel;
     class InboundTunnel;
-    class Tunnel: public TunnelBase
+    class Tunnel: public TunnelBase, I2PD_LOG_ENABLED
     {
         public:
 
@@ -81,7 +82,8 @@ namespace tunnel
     {
         public:
 
-            OutboundTunnel (std::shared_ptr<const TunnelConfig> config): Tunnel (config), m_Gateway (this) {};
+            OutboundTunnel (std::shared_ptr<const TunnelConfig> config): Tunnel (config), m_Gateway (this)
+                , I2PD_DEFINE_LOGGER {};
 
             void SendTunnelDataMsg (const uint8_t * gwHash, uint32_t gwTunnel, std::shared_ptr<i2p::I2NPMessage> msg);
             void SendTunnelDataMsg (const std::vector<TunnelMessageBlock>& msgs); // multiple messages
@@ -103,7 +105,8 @@ namespace tunnel
     {
         public:
 
-            InboundTunnel (std::shared_ptr<const TunnelConfig> config): Tunnel (config), m_Endpoint (true) {};
+            InboundTunnel (std::shared_ptr<const TunnelConfig> config): Tunnel (config), m_Endpoint (true)
+                , I2PD_DEFINE_LOGGER {};
             void HandleTunnelDataMsg (std::shared_ptr<const I2NPMessage> msg);
             size_t GetNumReceivedBytes () const { return m_Endpoint.GetNumReceivedBytes (); };
 
@@ -115,7 +118,7 @@ namespace tunnel
     };  
 
     
-    class Tunnels
+    class Tunnels: I2PD_LOG_ENABLED
     {   
         public:
 

@@ -15,6 +15,7 @@
 #include "RouterInfo.h"
 #include "I2NPProtocol.h"
 #include "SSUSession.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -32,7 +33,7 @@ namespace transport
         size_t len;
     };  
     
-    class SSUServer
+    class SSUServer: I2PD_LOG_ENABLED
     {
         public:
 

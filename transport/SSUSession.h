@@ -9,6 +9,7 @@
 #include "I2NPProtocol.h"
 #include "TransportSession.h"
 #include "SSUData.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -62,6 +63,7 @@ namespace transport
     
     class SSUServer;
     class SSUSession: public TransportSession, public std::enable_shared_from_this<SSUSession>
+        , I2PD_LOG_ENABLED
     {
         public:
 

@@ -57,7 +57,7 @@ namespace i2p
 {
 namespace transport
 {
-    UPnP::UPnP () : m_Thread (nullptr) , m_IsModuleLoaded (false)
+    UPnP::UPnP () : m_Thread (nullptr) , m_IsModuleLoaded (false), I2PD_DEFINE_LOGGER
     {
     }
 

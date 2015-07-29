@@ -14,6 +14,7 @@
 #include "TunnelBase.h"
 #include "RouterContext.h"
 #include "Garlic.h"
+#include "util/Log.h"
 
 namespace i2p
 {
@@ -24,6 +25,7 @@ namespace tunnel
     class OutboundTunnel;
 
     class TunnelPool: public std::enable_shared_from_this<TunnelPool> // per local destination
+        , I2PD_LOG_ENABLED
     {
         public:
 
