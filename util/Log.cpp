@@ -1,5 +1,4 @@
 #include "Log.h"
-//#include <boost/log/core/core.hpp>
 #include <boost/log/attributes/mutable_constant.hpp>
 #include <boost/log/keywords/channel.hpp>
 #include <boost/log/keywords/severity.hpp>
@@ -8,7 +7,6 @@
 #include <boost/log/utility/setup/from_stream.hpp>
 #include <boost/log/utility/setup/common_attributes.hpp>
 #include <fstream>
-//#include <string>
 #include <boost/format.hpp>
 
 namespace i2p
@@ -17,6 +15,7 @@ namespace i2p
     {
 
         namespace keywords = boost::log::keywords;
+        namespace attrs = boost::log::attributes;
 
         logger g_logger("global"); // FIXME: global catch all for now
 
@@ -36,8 +35,14 @@ namespace i2p
             "trace2"    // eLogTrace2
         };
 
-        boost::log::attributes::mutable_constant< uint64_t > sent_attr(0);
-        boost::log::attributes::mutable_constant< uint64_t > received_attr(0);
+        typedef attrs::mutable_constant<
+            uint64_t,                                   // attribute value type
+            boost::shared_mutex,                        // synchronization primitive
+            boost::unique_lock< boost::shared_mutex >,  // exclusive lock type
+            boost::shared_lock< boost::shared_mutex >   // shared lock type
+        > shared_mc;
+        shared_mc sent_attr(0);
+        shared_mc received_attr(0);
 
         void UpdateSent(uint64_t x) { sent_attr.set(x); }
         void UpdateReceived(uint64_t x) { received_attr.set(x); }
@@ -50,7 +55,7 @@ namespace i2p
                 logging::init_from_stream(file);
             logging::add_common_attributes(); // registers "LineID", "TimeStamp", "ProcessID" and "ThreadID"
             boost::shared_ptr<logging::core> pCore = logging::core::get();
-            pCore->add_global_attribute("Scope", logging::attributes::named_scope());
+            pCore->add_global_attribute("Scope", attrs::named_scope());
             pCore->add_global_attribute("Sent", sent_attr);
             pCore->add_global_attribute("Received", received_attr);
         }
