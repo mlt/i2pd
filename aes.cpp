@@ -47,7 +47,7 @@ namespace crypto
 		);
 	}
 
-	void ECBEncryptionAESNI::Encrypt (const ChipherBlock * in, ChipherBlock * out)
+	void ECBEncryptionAESNI::Encrypt (const CipherBlock * in, CipherBlock * out)
 	{
 		__asm__
 		(
@@ -59,7 +59,7 @@ namespace crypto
 	}
 
 
-	void ECBDecryptionAESNI::Decrypt (const ChipherBlock * in, ChipherBlock * out)
+	void ECBDecryptionAESNI::Decrypt (const CipherBlock * in, CipherBlock * out)
 	{
 		__asm__
 		(
@@ -96,7 +96,7 @@ namespace crypto
 #endif
 
 
-	void CBCEncryption::Encrypt (int numBlocks, const ChipherBlock * in, ChipherBlock * out)
+	void CBCEncryption::Encrypt (int numBlocks, const CipherBlock * in, CipherBlock * out)
 	{
 #ifdef AESNI
 		__asm__
@@ -133,7 +133,7 @@ namespace crypto
 		// len/16
 		int numBlocks = len >> 4;
 		if (numBlocks > 0)
-			Encrypt (numBlocks, (const ChipherBlock *)in, (ChipherBlock *)out);
+			Encrypt (numBlocks, (const CipherBlock *)in, (CipherBlock *)out);
 	}
 
 	void CBCEncryption::Encrypt (const uint8_t * in, uint8_t * out)
@@ -153,11 +153,11 @@ namespace crypto
 		    : "%xmm0", "%xmm1", "memory"
 		);
 #else
-		Encrypt (1, (const ChipherBlock *)in, (ChipherBlock *)out);
+		Encrypt (1, (const CipherBlock *)in, (CipherBlock *)out);
 #endif
 	}
 
-	void CBCDecryption::Decrypt (int numBlocks, const ChipherBlock * in, ChipherBlock * out)
+	void CBCDecryption::Decrypt (int numBlocks, const CipherBlock * in, CipherBlock * out)
 	{
 #ifdef AESNI
 		__asm__
@@ -183,7 +183,7 @@ namespace crypto
 #else
 		for (int i = 0; i < numBlocks; i++)
 		{
-			ChipherBlock tmp = in[i];
+			CipherBlock tmp = in[i];
 			m_ECBDecryption.Decrypt (in + i, out + i);
 			out[i] ^= m_IV;
 			m_IV = tmp;
@@ -195,7 +195,7 @@ namespace crypto
 	{
 		int numBlocks = len >> 4;
 		if (numBlocks > 0)
-			Decrypt (numBlocks, (const ChipherBlock *)in, (ChipherBlock *)out);
+			Decrypt (numBlocks, (const CipherBlock *)in, (CipherBlock *)out);
 	}
 
 	void CBCDecryption::Decrypt (const uint8_t * in, uint8_t * out)
@@ -215,7 +215,7 @@ namespace crypto
 		    : "%xmm0", "%xmm1", "memory"
 		);
 #else
-		Decrypt (1, (const ChipherBlock *)in, (ChipherBlock *)out);
+		Decrypt (1, (const CipherBlock *)in, (CipherBlock *)out);
 #endif
 	}
 
