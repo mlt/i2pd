@@ -19,8 +19,8 @@ namespace data
             typedef std::function<void (std::shared_ptr<RouterInfo>)> RequestComplete;
 
             RequestedDestination (const IdentHash& destination, bool isExploratory = false):
-                m_Destination (destination), m_IsExploratory (isExploratory), m_CreationTime (0)
-                , I2PD_DEFINE_LOGGER {};
+                I2PD_DEFINE_LOGGER,
+                m_Destination (destination), m_IsExploratory (isExploratory), m_CreationTime (0) {};
             ~RequestedDestination () { if (m_RequestComplete) m_RequestComplete (nullptr); };           
 
             const IdentHash& GetDestination () const { return m_Destination; };

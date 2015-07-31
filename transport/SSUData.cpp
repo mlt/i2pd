@@ -24,8 +24,9 @@ namespace transport
     }
 
     SSUData::SSUData (SSUSession& session):
+        I2PD_DEFINE_LOGGER,
         m_Session (session), m_ResendTimer (session.GetService ()), m_DecayTimer (session.GetService ()),
-        m_IncompleteMessagesCleanupTimer (session.GetService ()), I2PD_DEFINE_LOGGER
+        m_IncompleteMessagesCleanupTimer (session.GetService ())
     {
         m_MaxPacketSize = session.IsV6 () ? SSU_V6_MAX_PACKET_SIZE : SSU_V4_MAX_PACKET_SIZE;
         m_PacketSize = m_MaxPacketSize;

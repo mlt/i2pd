@@ -121,7 +121,7 @@ namespace garlic
     {
         public:
 
-            GarlicDestination (): m_LastTagsCleanupTime (0), I2PD_DEFINE_LOGGER {};
+            GarlicDestination (): I2PD_DEFINE_LOGGER, m_LastTagsCleanupTime (0) {};
             ~GarlicDestination ();
 
             std::shared_ptr<GarlicRoutingSession> GetRoutingSession (std::shared_ptr<const i2p::data::RoutingDestination> destination, bool attachLeaseSet);    

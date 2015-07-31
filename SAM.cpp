@@ -14,10 +14,11 @@ namespace i2p
 {
 namespace client
 {
-    SAMSocket::SAMSocket (SAMBridge& owner): 
+    SAMSocket::SAMSocket (SAMBridge& owner):
+        I2PD_DEFINE_LOGGER,
         m_Owner (owner), m_Socket (m_Owner.GetService ()), m_Timer (m_Owner.GetService ()),
         m_BufferOffset (0), m_SocketType (eSAMSocketTypeUnknown), m_IsSilent (false), 
-        m_Stream (nullptr), m_Session (nullptr), I2PD_DEFINE_LOGGER
+        m_Stream (nullptr), m_Session (nullptr)
     {
     }
 
@@ -684,7 +685,7 @@ namespace client
     }
 
     SAMBridge::SAMBridge(const std::string& address, int port)
-        : m_IsRunning (false), m_Thread (nullptr),
+        : I2PD_DEFINE_LOGGER, m_IsRunning (false), m_Thread (nullptr),
           m_Acceptor(m_Service, boost::asio::ip::tcp::endpoint(
             boost::asio::ip::address::from_string(address), port)
           ),

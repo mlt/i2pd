@@ -86,7 +86,7 @@ namespace data
             };
             
             RouterInfo (const std::string& fullPath);
-            RouterInfo (): m_Buffer (nullptr), I2PD_DEFINE_LOGGER { };
+            RouterInfo (): I2PD_DEFINE_LOGGER, m_Buffer (nullptr) { };
 
             RouterInfo (const RouterInfo& ) = default;
             RouterInfo& operator=(const RouterInfo& ) = default;

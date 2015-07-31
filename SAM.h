@@ -143,7 +143,7 @@ namespace client
         void CloseStreams ();
     };
 
-    class SAMBridge
+    class SAMBridge: I2PD_LOG_ENABLED
     {
         public:
 

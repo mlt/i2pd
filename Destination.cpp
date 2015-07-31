@@ -14,10 +14,10 @@ namespace client
 {
     ClientDestination::ClientDestination (const i2p::data::PrivateKeys& keys, bool isPublic, 
             const std::map<std::string, std::string> * params):
+        I2PD_DEFINE_LOGGER,
         m_IsRunning (false), m_Thread (nullptr), m_Work (m_Service),    
         m_Keys (keys), m_IsPublic (isPublic), m_PublishReplyToken (0),
         m_DatagramDestination (nullptr), m_PublishConfirmationTimer (m_Service), m_CleanupTimer (m_Service)
-        , I2PD_DEFINE_LOGGER
     {
         i2p::crypto::GenerateElGamalKeyPair(i2p::context.GetRandomNumberGenerator (), m_EncryptionPrivateKey, m_EncryptionPublicKey);
         int inboundTunnelLen = DEFAULT_INBOUND_TUNNEL_LENGTH;

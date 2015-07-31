@@ -19,10 +19,10 @@ namespace i2p
 namespace transport
 {
     NTCPSession::NTCPSession (NTCPServer& server, std::shared_ptr<const i2p::data::RouterInfo> in_RemoteRouter): 
-        TransportSession (in_RemoteRouter), m_Server (server), m_Socket (m_Server.GetService ()), 
+        I2PD_DEFINE_LOGGER,
+        TransportSession (in_RemoteRouter), m_Server (server), m_Socket (m_Server.GetService ()),
         m_TerminationTimer (m_Server.GetService ()), m_IsEstablished (false), m_IsTerminated (false),
         m_ReceiveBufferOffset (0), m_NextMessage (nullptr), m_IsSending (false)
-        , I2PD_DEFINE_LOGGER
     {       
         m_DHKeysPair = transports.GetNextDHKeysPair ();
         m_Establisher = new Establisher;
@@ -711,9 +711,9 @@ namespace transport
 
 //-----------------------------------------
     NTCPServer::NTCPServer (int port):
-        m_IsRunning (false), m_Thread (nullptr), m_Work (m_Service), 
+        I2PD_DEFINE_LOGGER,
+        m_IsRunning (false), m_Thread (nullptr), m_Work (m_Service),
         m_NTCPAcceptor (nullptr), m_NTCPV6Acceptor (nullptr)
-        , I2PD_DEFINE_LOGGER
     {
     }
         

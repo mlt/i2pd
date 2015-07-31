@@ -18,17 +18,17 @@ namespace i2p
 namespace data
 {       
     RouterInfo::RouterInfo (const std::string& fullPath):
+        I2PD_DEFINE_LOGGER,
         m_FullPath (fullPath), m_IsUpdated (false), m_IsUnreachable (false), 
         m_SupportedTransports (0), m_Caps (0)
-        , I2PD_DEFINE_LOGGER
     {
         m_Buffer = new uint8_t[MAX_RI_BUFFER_SIZE];
         ReadFromFile ();
     }   
 
     RouterInfo::RouterInfo (const uint8_t * buf, int len):
+        I2PD_DEFINE_LOGGER,
         m_IsUpdated (true), m_IsUnreachable (false), m_SupportedTransports (0), m_Caps (0)
-        , I2PD_DEFINE_LOGGER
     {
         m_Buffer = new uint8_t[MAX_RI_BUFFER_SIZE];
         memcpy (m_Buffer, buf, len);

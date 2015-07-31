@@ -14,7 +14,7 @@ namespace data
 {
     
     LeaseSet::LeaseSet (const uint8_t * buf, size_t len):
-        m_IsValid (true), I2PD_DEFINE_LOGGER
+        I2PD_DEFINE_LOGGER, m_IsValid (true)
     {
         m_Buffer = new uint8_t[len];
         memcpy (m_Buffer, buf, len);
@@ -23,7 +23,7 @@ namespace data
     }
 
     LeaseSet::LeaseSet (const i2p::tunnel::TunnelPool& pool):
-        m_IsValid (true), I2PD_DEFINE_LOGGER
+        I2PD_DEFINE_LOGGER, m_IsValid (true)
     {   
         // header
         const i2p::data::LocalDestination * localDestination = pool.GetLocalDestination ();

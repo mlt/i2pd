@@ -82,9 +82,8 @@ namespace tunnel
     {
         public:
 
-            OutboundTunnel (std::shared_ptr<const TunnelConfig> config): Tunnel (config), m_Gateway (this)
-                , I2PD_DEFINE_LOGGER {};
-
+            OutboundTunnel (std::shared_ptr<const TunnelConfig> config):
+                I2PD_DEFINE_LOGGER, Tunnel (config), m_Gateway (this) {};
             void SendTunnelDataMsg (const uint8_t * gwHash, uint32_t gwTunnel, std::shared_ptr<i2p::I2NPMessage> msg);
             void SendTunnelDataMsg (const std::vector<TunnelMessageBlock>& msgs); // multiple messages
             std::shared_ptr<const i2p::data::RouterInfo> GetEndpointRouter () const 
@@ -105,8 +104,11 @@ namespace tunnel
     {
         public:
 
-            InboundTunnel (std::shared_ptr<const TunnelConfig> config): Tunnel (config), m_Endpoint (true)
-                , I2PD_DEFINE_LOGGER {};
+            InboundTunnel (std::shared_ptr<const TunnelConfig> config):
+                I2PD_DEFINE_LOGGER
+                , Tunnel (config)
+                , m_Endpoint (true)
+                {};
             void HandleTunnelDataMsg (std::shared_ptr<const I2NPMessage> msg);
             size_t GetNumReceivedBytes () const { return m_Endpoint.GetNumReceivedBytes (); };
 

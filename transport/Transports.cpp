@@ -94,11 +94,11 @@ namespace transport
     Transports transports;  
     
     Transports::Transports (): 
+        I2PD_DEFINE_LOGGER,
         m_IsRunning (false), m_Thread (nullptr), m_Work (m_Service), m_PeerCleanupTimer (m_Service),
         m_NTCPServer (nullptr), m_SSUServer (nullptr), m_DHKeysPairSupplier (5), // 5 pre-generated keys
         m_TotalSentBytes(0), m_TotalReceivedBytes(0), m_InBandwidth (0), m_OutBandwidth (0),
         m_LastInBandwidthUpdateBytes (0), m_LastOutBandwidthUpdateBytes (0), m_LastBandwidthUpdateTime (0)  
-        , I2PD_DEFINE_LOGGER
     {       
     }
         

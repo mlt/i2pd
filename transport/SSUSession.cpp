@@ -13,11 +13,12 @@ namespace i2p
 namespace transport
 {
     SSUSession::SSUSession (SSUServer& server, boost::asio::ip::udp::endpoint& remoteEndpoint,
-        std::shared_ptr<const i2p::data::RouterInfo> router, bool peerTest ): TransportSession (router), 
+        std::shared_ptr<const i2p::data::RouterInfo> router, bool peerTest ):
+        I2PD_DEFINE_LOGGER,
+        TransportSession (router),
         m_Server (server), m_RemoteEndpoint (remoteEndpoint), m_Timer (GetService ()), 
         m_PeerTest (peerTest),m_State (eSessionStateUnknown), m_IsSessionKey (false), 
         m_RelayTag (0),m_Data (*this), m_IsDataReceived (false)
-        , I2PD_DEFINE_LOGGER
     {
         m_CreationTime = i2p::util::GetSecondsSinceEpoch ();
     }

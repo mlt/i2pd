@@ -16,9 +16,9 @@ namespace garlic
 {
     GarlicRoutingSession::GarlicRoutingSession (GarlicDestination * owner, 
         std::shared_ptr<const i2p::data::RoutingDestination> destination, int numTags, bool attachLeaseSet):
+        I2PD_DEFINE_LOGGER,
         m_Owner (owner), m_Destination (destination), m_NumTags (numTags), 
         m_LeaseSetUpdateStatus (attachLeaseSet ? eLeaseSetUpdated : eLeaseSetDoNotSend)
-        , I2PD_DEFINE_LOGGER
     {
         // create new session tags and session key
         m_Rnd.GenerateBlock (m_SessionKey, 32);
@@ -26,8 +26,8 @@ namespace garlic
     }   
 
     GarlicRoutingSession::GarlicRoutingSession (const uint8_t * sessionKey, const SessionTag& sessionTag):
+        I2PD_DEFINE_LOGGER,
         m_Owner (nullptr), m_Destination (nullptr), m_NumTags (1), m_LeaseSetUpdateStatus (eLeaseSetDoNotSend)
-        , I2PD_DEFINE_LOGGER
     {
         memcpy (m_SessionKey, sessionKey, 32);
         m_Encryption.SetKey (m_SessionKey);

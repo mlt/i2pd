@@ -24,8 +24,8 @@ namespace data
     const char NetDb::m_NetDbPath[] = "netDb";
     NetDb netdb;
 
-    NetDb::NetDb (): m_IsRunning (false), m_Thread (nullptr), m_Reseeder (nullptr)
-        , I2PD_DEFINE_LOGGER
+    NetDb::NetDb (): I2PD_DEFINE_LOGGER,
+        m_IsRunning (false), m_Thread (nullptr), m_Reseeder (nullptr)
     {
     }
     

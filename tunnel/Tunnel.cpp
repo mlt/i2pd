@@ -17,8 +17,8 @@ namespace tunnel
 {       
     
     Tunnel::Tunnel (std::shared_ptr<const TunnelConfig> config): 
-        m_Config (config), m_Pool (nullptr), m_State (eTunnelStatePending), m_IsRecreated (false)
-        , I2PD_DEFINE_LOGGER
+        I2PD_DEFINE_LOGGER
+        , m_Config (config), m_Pool (nullptr), m_State (eTunnelStatePending), m_IsRecreated (false)
     {
     }   
 
@@ -204,9 +204,10 @@ namespace tunnel
 
     Tunnels tunnels;
     
-    Tunnels::Tunnels (): m_IsRunning (false), m_Thread (nullptr),
+    Tunnels::Tunnels ():
+        I2PD_DEFINE_LOGGER,
+        m_IsRunning (false), m_Thread (nullptr)
         m_NumSuccesiveTunnelCreations (0), m_NumFailedTunnelCreations (0)
-        , I2PD_DEFINE_LOGGER
     {
     }
     

@@ -28,8 +28,8 @@ namespace tunnel
         
         public:
 
-            TunnelEndpoint (bool isInbound): m_IsInbound (isInbound), m_NumReceivedBytes (0)
-                , I2PD_DEFINE_LOGGER{};
+            TunnelEndpoint (bool isInbound): I2PD_DEFINE_LOGGER
+                , m_IsInbound (isInbound), m_NumReceivedBytes (0) {};
             ~TunnelEndpoint ();
             size_t GetNumReceivedBytes () const { return m_NumReceivedBytes; };
             

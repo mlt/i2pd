@@ -15,9 +15,9 @@ namespace i2p
     RouterContext context;
 
     RouterContext::RouterContext ():
-        m_LastUpdateTime (0), m_AcceptsTunnels (true), m_IsFloodfill (false), 
+        I2PD_DEFINE_LOGGER,
+        m_LastUpdateTime (0), m_AcceptsTunnels (true), m_IsFloodfill (false),
         m_StartupTime (0), m_Status (eRouterStatusOK )
-        , I2PD_DEFINE_LOGGER
     {
     }
 
