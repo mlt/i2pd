@@ -10,8 +10,8 @@ namespace i2p
 {
 namespace client
 {
-	I2PControlService::I2PControlService(const std::string& address, int port)
-		: m_Session(std::make_shared<I2PControlSession>(m_Service)),
+	I2PControlService::I2PControlService(const std::string& address, int port, const std::string& pass)
+		: m_Session(std::make_shared<I2PControlSession>(m_Service, pass)),
 		  m_IsRunning(false), m_Thread(nullptr),
 		  m_Acceptor(m_Service, boost::asio::ip::tcp::endpoint(
 		                 boost::asio::ip::address::from_string(address), port)

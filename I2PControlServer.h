@@ -24,7 +24,7 @@ namespace client
 	{
 		public:
 
-			I2PControlService(const std::string& address, int port);
+			I2PControlService(const std::string& address, int port, const std::string& pass);
 			~I2PControlService ();
 
 			void Start ();
