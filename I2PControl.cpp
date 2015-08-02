@@ -42,7 +42,7 @@ namespace client
 		}
 		oss << "},\"jsonrpc\":\"" << version << '"';
 		if (error != ErrorCode::None)
-			oss << ",\"error\":{\"code\":" << static_cast<int>(error)
+			oss << ",\"error\":{\"code\":" << -static_cast<int>(error)
 			    << ",\"message\":\"" << getErrorMsg() << "\"" << "}";
 		oss << "}";
 		return oss.str();
