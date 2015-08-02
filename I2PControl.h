@@ -80,7 +80,7 @@ namespace client
 				// I2PControl specific
 				InvalidPassword = 32001,
 				NoToken = 32002,
-				NonexistantToken = 32003,
+				NonexistentToken = 32003,
 				ExpiredToken = 32004,
 				UnspecifiedVersion = 32005,
 				UnsupportedVersion = 32006

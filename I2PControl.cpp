@@ -64,8 +64,8 @@ namespace client
 			return "Invalid password.";
 		case ErrorCode::NoToken:
 			return "No authentication token given.";
-		case ErrorCode::NonexistantToken:
-			return "Nonexistant authentication token given.";
+		case ErrorCode::NonexistentToken:
+			return "Nonexistent authentication token given.";
 		case ErrorCode::ExpiredToken:
 			return "Exipred authentication token given.";
 		case ErrorCode::UnspecifiedVersion:
@@ -195,7 +195,7 @@ namespace client
 			auto it = tokens.find(token);
 			if (it == tokens.end())
 			{
-				response.setError(ErrorCode::NonexistantToken);
+				response.setError(ErrorCode::NonexistentToken);
 				return false;
 			}
 			else if (util::GetSecondsSinceEpoch() - it->second > I2P_CONTROL_TOKEN_LIFETIME)
