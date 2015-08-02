@@ -4,8 +4,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <string>
 #include <map>
-#include <set>
 #include <functional>
+#include <mutex>
 #include <boost/asio.hpp>
 
 namespace i2p
@@ -14,6 +14,7 @@ namespace client
 {
 
 	const char I2P_CONTROL_DEFAULT_PASSWORD[] = "itoopie";
+	const uint64_t I2P_CONTROL_TOKEN_LIFETIME = 600; // Token lifetime in seconds
 
 	const char I2P_CONTROL_PROPERTY_ID[] = "id";
 	const char I2P_CONTROL_PROPERTY_METHOD[] = "method";
@@ -59,9 +60,10 @@ namespace client
 	/**
 	 * "Null" I2P control implementation, does not do actual networking.
 	 * @note authentication tokens are per-session
+	 * @note I2PControlSession must always be used as a std::shared_ptr
 	 * @warning an I2PControlSession must be destroyed before its io_service
 	 */
-	class I2PControlSession
+	class I2PControlSession : public std::enable_shared_from_this<I2PControlSession>
 	{
 
 		public:
@@ -115,11 +117,16 @@ namespace client
 			 */
 			I2PControlSession(boost::asio::io_service& ios);
 
-			~I2PControlSession();
+			/**
+			 * Starts the I2PControlSession.
+			 * In essence, this starts the expireTokensTimer.
+			 * @note should always be called after construction
+			 */
+			void start();
 
 			/**
 			 * Cancels all operations that are waiting.
-			 * @note must not be called before destruction, destructor handles this
+			 * @note it's a good idea to call this before destruction (shared_ptr reset)
 			 */
 			void stop();
 
@@ -148,6 +155,13 @@ namespace client
 			 */
 			std::string generateToken() const;
 
+			void startExpireTokensJob();
+
+			/**
+			 * Expire tokens that are too old.
+			 */
+			void expireTokens(const boost::system::error_code& error);
+
 			// Method handlers
 			void handleAuthenticate(const PropertyTree& pt, Response& response);
 			void handleEcho(const PropertyTree& pt, Response& response);
@@ -173,7 +187,8 @@ namespace client
 			void handleReseed(Response& response);
 
 			std::string password;
-			std::set<std::string> tokens;
+			std::map<std::string, uint64_t> tokens;
+			std::mutex tokensMutex;
 
 			std::map<std::string, MethodHandler> methodHandlers;
 			std::map<std::string, RequestHandler> routerInfoHandlers;
@@ -182,6 +197,7 @@ namespace client
 
 			boost::asio::io_service& service;
 			boost::asio::deadline_timer shutdownTimer;
+			boost::asio::deadline_timer expireTokensTimer;
 	};
 
 }

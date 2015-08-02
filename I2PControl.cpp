@@ -105,7 +105,8 @@ namespace client
 	}
 
 	I2PControlSession::I2PControlSession(boost::asio::io_service& ios)
-		: password(I2P_CONTROL_DEFAULT_PASSWORD), tokens(), service(ios), shutdownTimer(ios)
+		: password(I2P_CONTROL_DEFAULT_PASSWORD), tokens(), tokensMutex(),
+		  service(ios), shutdownTimer(ios), expireTokensTimer(ios)
 	{
 		// Method handlers
 		methodHandlers[I2P_CONTROL_METHOD_AUTHENTICATE] = &I2PControlSession::handleAuthenticate;
@@ -131,15 +132,16 @@ namespace client
 		routerManagerHandlers[I2P_CONTROL_ROUTER_MANAGER_RESEED] = &I2PControlSession::handleReseed;
 	}
 
-	I2PControlSession::~I2PControlSession()
+	void I2PControlSession::start()
 	{
-		stop();
+		startExpireTokensJob();
 	}
 
 	void I2PControlSession::stop()
 	{
 		boost::system::error_code e; // Make sure this doesn't throw
 		shutdownTimer.cancel(e);
+		expireTokensTimer.cancel(e);
 	}
 
 	I2PControlSession::Response I2PControlSession::handleRequest(std::stringstream& request)
@@ -188,11 +190,20 @@ namespace client
 		try
 		{
 			std::string token = pt.get<std::string>(I2P_CONTROL_PARAM_TOKEN);
-			if (tokens.find(token) == tokens.end())
+
+			std::lock_guard<std::mutex> lock(tokensMutex);
+			auto it = tokens.find(token);
+			if (it == tokens.end())
 			{
 				response.setError(ErrorCode::NonexistantToken);
 				return false;
 			}
+			else if (util::GetSecondsSinceEpoch() - it->second > I2P_CONTROL_TOKEN_LIFETIME)
+			{
+				response.setError(ErrorCode::ExpiredToken);
+				return false;
+			}
+
 		}
 		catch (const boost::property_tree::ptree_error& error)
 		{
@@ -235,7 +246,9 @@ namespace client
 		const std::string token = generateToken();
 		response.setParam(I2P_CONTROL_PARAM_API, api);
 		response.setParam(I2P_CONTROL_PARAM_TOKEN, token);
-		tokens.insert(token);
+
+		std::lock_guard<std::mutex> lock(tokensMutex);
+		tokens.insert(std::make_pair(token, util::GetSecondsSinceEpoch()));
 	}
 
 	void I2PControlSession::handleEcho(const PropertyTree& pt, Response& response)
@@ -391,6 +404,32 @@ namespace client
 		LogPrint(eLogInfo, "Reseed requested");
 		response.setParam(I2P_CONTROL_ROUTER_MANAGER_SHUTDOWN, "");
 		i2p::data::netdb.Reseed();
+	}
+
+	void I2PControlSession::expireTokens(const boost::system::error_code& error)
+	{
+		if (error == boost::asio::error::operation_aborted)
+			return; // Do not restart timer, shutting down
+
+		startExpireTokensJob();
+		LogPrint(eLogDebug, "I2PControl is expiring tokens.");
+		const uint64_t now = util::GetSecondsSinceEpoch();
+		std::lock_guard<std::mutex> lock(tokensMutex);
+		for (auto it = tokens.begin(); it != tokens.end(); )
+		{
+			if (now - it->second > I2P_CONTROL_TOKEN_LIFETIME)
+				it = tokens.erase(it);
+			else
+				++it;
+		}
+	}
+
+	void I2PControlSession::startExpireTokensJob()
+	{
+		expireTokensTimer.expires_from_now(boost::posix_time::seconds(I2P_CONTROL_TOKEN_LIFETIME));
+		expireTokensTimer.async_wait(std::bind(
+		                                 &I2PControlSession::expireTokens, shared_from_this(), std::placeholders::_1
+		                             ));
 	}
 
 }
