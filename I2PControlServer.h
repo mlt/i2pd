@@ -51,7 +51,7 @@ namespace client
 			boost::asio::io_service m_Service;
 			boost::asio::ip::tcp::acceptor m_Acceptor;
 
-			I2PControlSession m_Session;
+			I2PControlSession* m_Session;
 
 	};
 }

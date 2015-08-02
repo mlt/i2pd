@@ -59,6 +59,7 @@ namespace client
 	/**
 	 * "Null" I2P control implementation, does not do actual networking.
 	 * @note authentication tokens are per-session
+	 * @warning an I2PControlSession must be destroyed before its io_service
 	 */
 	class I2PControlSession
 	{
@@ -109,9 +110,18 @@ namespace client
 
 			/**
 			 * Sets up the appropriate handlers.
-			 * @param ios the parent io_service object
+			 * @param ios the parent io_service object, must remain valid throughout
+			 *  the lifetime of this I2PControlSession.
 			 */
 			I2PControlSession(boost::asio::io_service& ios);
+
+			~I2PControlSession();
+
+			/**
+			 * Cancels all operations that are waiting.
+			 * @note must not be called before destruction, destructor handles this
+			 */
+			void stop();
 
 			/**
 			 * Handle a json string with I2PControl instructions.
@@ -125,7 +135,6 @@ namespace client
 			    const PropertyTree& pt, Response& results
 			);
 			typedef void (I2PControlSession::*RequestHandler)(Response& results);
-
 
 			/**
 			 * Tries to authenticate by checking whether the given token is valid.
