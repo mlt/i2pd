@@ -11,7 +11,7 @@
 #include "SAM.h"
 #include "BOB.h"
 #include "AddressBook.h"
-#include "I2PControl.h"
+#include "I2PControlServer.h"
 
 namespace i2p
 {
