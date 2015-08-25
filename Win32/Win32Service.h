@@ -32,9 +32,9 @@ class I2PService
 public:
 
 	I2PService(PSTR pszServiceName,
-		BOOL fCanStop = TRUE,
-		BOOL fCanShutdown = TRUE,
-		BOOL fCanPauseContinue = FALSE);
+	           BOOL fCanStop = TRUE,
+	           BOOL fCanShutdown = TRUE,
+	           BOOL fCanPauseContinue = FALSE);
 
 	virtual ~I2PService(void);
 
@@ -50,8 +50,8 @@ protected:
 	virtual void OnContinue();
 	virtual void OnShutdown();
 	void SetServiceStatus(DWORD dwCurrentState,
-		DWORD dwWin32ExitCode = NO_ERROR,
-		DWORD dwWaitHint = 0);
+	                      DWORD dwWin32ExitCode = NO_ERROR,
+	                      DWORD dwWaitHint = 0);
 
 private:
 
@@ -74,11 +74,11 @@ private:
 };
 
 void InstallService(PSTR pszServiceName,
-	PSTR pszDisplayName,
-	DWORD dwStartType,
-	PSTR pszDependencies,
-	PSTR pszAccount,
-	PSTR pszPassword);
+                    PSTR pszDisplayName,
+                    DWORD dwStartType,
+                    PSTR pszDependencies,
+                    PSTR pszAccount,
+                    PSTR pszPassword);
 
 void UninstallService(PSTR pszServiceName);
 
