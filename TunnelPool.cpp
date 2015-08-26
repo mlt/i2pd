@@ -2,7 +2,7 @@
 #include "I2PEndian.h"
 #include "CryptoConst.h"
 #include "Tunnel.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "Timestamp.h"
 #include "Garlic.h"
 #include "Transports.h"

@@ -1,7 +1,7 @@
 #include "I2PEndian.h"
 #include <string.h>
 #include "Log.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "I2NPProtocol.h"
 #include "Transports.h"
 #include "RouterContext.h"

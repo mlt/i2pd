@@ -9,7 +9,7 @@
 #include "Timestamp.h"
 #include "I2NPProtocol.h"
 #include "Transports.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "Tunnel.h"
 
 namespace i2p

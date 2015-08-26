@@ -5,7 +5,7 @@
 #include "ElGamal.h"
 #include "Timestamp.h"
 #include "RouterContext.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "Tunnel.h"
 #include "Transports.h"
 #include "Garlic.h"

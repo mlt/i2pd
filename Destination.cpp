@@ -5,7 +5,7 @@
 #include "util.h"
 #include "ElGamal.h"
 #include "Timestamp.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "Destination.h"
 #include "AddressBook.h"
 
