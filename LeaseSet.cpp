@@ -5,7 +5,7 @@
 #include "CryptoConst.h"
 #include "Log.h"
 #include "Timestamp.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "TunnelPool.h"
 #include "LeaseSet.h"
 

@@ -6,7 +6,7 @@
 #include "RouterContext.h"
 #include "Timestamp.h"
 #include "I2NPProtocol.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "util.h"
 #include "version.h"
 

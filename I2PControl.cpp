@@ -15,7 +15,7 @@
 #include "Timestamp.h"
 #include "Transports.h"
 #include "Tunnel.h"
-#include "NetDb.h"
+#include "NetworkDatabase.h"
 #include "version.h"
 #include "Daemon.h"
 
