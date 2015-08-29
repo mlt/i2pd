@@ -16,7 +16,7 @@ namespace crypto
 
 	bool EDDSA25519Verifier::Verify(const uint8_t* buf, size_t len, const uint8_t* signature) const
 	{
-		return ed25519_ref10_open(signature, buf, len, m_PublicKey) > 0;
+		return ed25519_ref10_open(signature, buf, len, m_PublicKey) >= 0;
 	}
 
 	size_t EDDSA25519Verifier::GetPublicKeyLen() const
@@ -37,7 +37,7 @@ namespace crypto
 		ed25519_ref10_pubkey(m_PublicKey, m_PrivateKey);
 	}
 
-	void EDDSA25519Signer::Sign(CryptoPP::RandomNumberGenerator& rnd, const uint8_t* buf, int len, uint8_t* signature) const
+	void EDDSA25519Signer::Sign(CryptoPP::RandomNumberGenerator&, const uint8_t* buf, int len, uint8_t* signature) const
 	{
 		ed25519_ref10_sign(signature, buf, len, m_PrivateKey, m_PublicKey);
 	}
