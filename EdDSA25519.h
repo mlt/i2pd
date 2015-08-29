@@ -47,6 +47,9 @@ namespace crypto
 			uint8_t m_PublicKey[EDDSA25519_PUBLIC_KEY_LENGTH];
 	};
 
+	void CreateEDDSARandomKeys(CryptoPP::RandomNumberGenerator& rnd, uint8_t* privateKey,
+	                           uint8_t* publicKey);
+
 }
 }
 
