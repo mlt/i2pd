@@ -256,7 +256,7 @@ namespace client
 		response.setParam(I2P_CONTROL_PARAM_RESULT, echo);
 	}
 
-	void I2PControlSession::handleI2PControl(const PropertyTree& pt, Response& response)
+	void I2PControlSession::handleI2PControl(const PropertyTree&, Response&)
 	{
 		LogPrint(eLogDebug, "I2PControl I2PControl");
 		// TODO: implement
@@ -305,9 +305,9 @@ namespace client
 		}
 	}
 
-	void I2PControlSession::handleNetworkSetting(const PropertyTree& pt, Response& response)
+	void I2PControlSession::handleNetworkSetting(const PropertyTree&, Response&)
 	{
-
+		// TODO: implement
 	}
 
 	void I2PControlSession::handleUptime(Response& response)
@@ -377,7 +377,7 @@ namespace client
 		response.setParam(I2P_CONTROL_ROUTER_MANAGER_SHUTDOWN, "");
 		// 1 second to make sure response has been sent
 		shutdownTimer.expires_from_now(boost::posix_time::seconds(1));
-		shutdownTimer.async_wait([](const boost::system::error_code& ecode)
+		shutdownTimer.async_wait([](const boost::system::error_code&)
 		{
 			Daemon.running = 0;
 		});
@@ -390,7 +390,7 @@ namespace client
 		LogPrint(eLogInfo, "Graceful shutdown requested. Will shutdown after ", timeout, " seconds");
 		response.setParam(I2P_CONTROL_ROUTER_MANAGER_SHUTDOWN_GRACEFUL, "");
 		shutdownTimer.expires_from_now(boost::posix_time::seconds(timeout + 1));
-		shutdownTimer.async_wait([](const boost::system::error_code& ecode)
+		shutdownTimer.async_wait([](const boost::system::error_code&)
 		{
 			Daemon.running = 0;
 		});
