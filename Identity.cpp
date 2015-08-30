@@ -5,6 +5,7 @@
 #include <cryptopp/dsa.h>
 #include "base64.h"
 #include "CryptoConst.h"
+#include "Signature.h"
 #include "ElGamal.h"
 #include "RouterContext.h"
 #include "Identity.h"
@@ -370,6 +371,7 @@ namespace data
 		delete verifier;
 	}
 
+
 	PrivateKeys& PrivateKeys::operator=(const Keys& keys)
 	{
 		m_Public = Identity (keys);
@@ -390,6 +392,11 @@ namespace data
 		m_Signer = nullptr;
 		CreateSigner ();
 		return *this;
+	}
+
+	PrivateKeys::~PrivateKeys()
+	{
+		delete m_Signer;
 	}
 
 	size_t PrivateKeys::FromBuffer (const uint8_t * buf, size_t len)
