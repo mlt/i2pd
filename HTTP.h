@@ -13,10 +13,14 @@ namespace util
 
 		class Request
 		{
+
 				void parseRequestLine(const std::string& line);
+
 				void parseHeaderLine(const std::string& line);
 			public:
 				Request(const std::string& data);
+
+				Request();
 
 				std::string getMethod() const;
 
@@ -36,6 +40,30 @@ namespace util
 				std::string uri;
 				std::string host;
 				int port;
+				std::map<std::string, std::string> headers;
+		};
+
+		class Response
+		{
+			public:
+
+				Response(int status);
+
+				/**
+				 * @note overrides existing header values with the same name
+				 */
+				void setHeader(const std::string& name, const std::string& value);
+
+				std::string toString() const;
+
+				/**
+				 * @return the message associated with the satus of this response, or the
+				 *  empty string if the status number is invalid
+				 */
+				std::string getStatusMessage() const;
+
+			private:
+				int status;
 				std::map<std::string, std::string> headers;
 		};
 
