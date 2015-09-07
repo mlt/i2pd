@@ -37,6 +37,14 @@ namespace util
 	const char HTTP_COMMAND_SAM_SESSION[] = "sam_session";
 	const char HTTP_PARAM_SAM_SESSION_ID[] = "id";
 
+	HTTPConnection::HTTPConnection(boost::asio::ip::tcp::socket* socket,
+	                               std::shared_ptr<i2p::client::I2PControlSession> session)
+		: m_Socket(socket), m_Timer(socket->get_io_service()),
+		  m_BufferLen(0), m_Session(session)
+	{
+
+	}
+
 	void HTTPConnection::Terminate()
 	{
 		m_Socket->close();
@@ -66,8 +74,21 @@ namespace util
 
 	void HTTPConnection::RunRequest()
 	{
-		m_Request = i2p::util::http::Request(std::string(m_Buffer, m_Buffer + m_BufferLen));
-		HandleRequest();
+		try
+		{
+			m_Request = i2p::util::http::Request(std::string(m_Buffer, m_Buffer + m_BufferLen));
+			if (m_Request.getMethod() == "GET")
+				return HandleRequest();
+			if (m_Request.getHeader("Content-Type").find("application/json") != std::string::npos)
+				return HandleI2PControlRequest();
+		}
+		catch (...)
+		{
+			// Ignore the error for now, probably Content-Type doesn't exist
+		}
+		// Unsupported method
+		m_Reply = i2p::util::http::Response(502, "");
+		SendReply();
 	}
 
 	void HTTPConnection::ExtractParams(const std::string& str, std::map<std::string, std::string>& params)
@@ -125,6 +146,23 @@ namespace util
 		ifs.close();
 
 		m_Reply = i2p::util::http::Response(200, str);
+
+		// TODO: get rid of this hack, actually determine the MIME type
+		if (address.substr(address.find_last_of(".")) == ".css")
+			m_Reply.setHeader("Content-Type", "text/css");
+		else if (address.substr(address.find_last_of(".")) == ".js")
+			m_Reply.setHeader("Content-Type", "text/javascript");
+		else
+			m_Reply.setHeader("Content-Type", "text/html");
+		SendReply();
+	}
+
+	void HTTPConnection::HandleI2PControlRequest()
+	{
+		std::stringstream ss(m_Request.getContent());
+		const client::I2PControlSession::Response rsp = m_Session->handleRequest(ss);
+		m_Reply = i2p::util::http::Response(200, rsp.toJsonString());
+		m_Reply.setHeader("Content-Type", "application/json");
 		SendReply();
 	}
 
@@ -148,7 +186,6 @@ namespace util
 		{
 			m_Reply.setHeader("Date", std::string(time_buff));
 			m_Reply.setContentLength();
-			m_Reply.setHeader("Content-Type", "text/html");
 		}
 		boost::asio::async_write(
 		    *m_Socket, boost::asio::buffer(m_Reply.toString()),
@@ -160,7 +197,9 @@ namespace util
 		m_Thread(nullptr), m_Work(m_Service),
 		m_Acceptor(m_Service, boost::asio::ip::tcp::endpoint(
 		               boost::asio::ip::address::from_string(address), port)
-		          ), m_NewSocket(nullptr)
+		          ),
+		m_NewSocket(nullptr),
+		m_Session(std::make_shared<i2p::client::I2PControlSession>(m_Service))
 	{
 
 	}
@@ -174,11 +213,13 @@ namespace util
 	{
 		m_Thread = new std::thread(std::bind(&HTTPServer::Run, this));
 		m_Acceptor.listen();
+		m_Session->start();
 		Accept();
 	}
 
 	void HTTPServer::Stop()
 	{
+		m_Session->stop();
 		m_Acceptor.close();
 		m_Service.stop();
 		if (m_Thread)
@@ -210,11 +251,11 @@ namespace util
 		}
 	}
 
-	void HTTPServer::CreateConnection(boost::asio::ip::tcp::socket * m_NewSocket)
+	void HTTPServer::CreateConnection(boost::asio::ip::tcp::socket* m_NewSocket)
 	{
-		auto conn = std::make_shared<HTTPConnection>(m_NewSocket);
+		auto conn = std::make_shared<HTTPConnection>(m_NewSocket, m_Session);
 		conn->Receive();
 	}
-}
-}
 
+}
+}

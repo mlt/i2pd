@@ -35,10 +35,13 @@ namespace util
 				 */
 				std::string getHeader(const std::string& name) const;
 
+				std::string getContent() const;
+
 			private:
 				std::string method;
 				std::string uri;
 				std::string host;
+				std::string content;
 				int port;
 				std::map<std::string, std::string> headers;
 		};
