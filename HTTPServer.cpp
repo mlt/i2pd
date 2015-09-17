@@ -38,7 +38,7 @@ namespace util
 	const char HTTP_PARAM_SAM_SESSION_ID[] = "id";
 
 	HTTPConnection::HTTPConnection(boost::asio::ip::tcp::socket* socket,
-	                               std::shared_ptr<i2p::client::I2PControlSession> session)
+	                               std::shared_ptr<client::i2pcontrol::I2PControlSession> session)
 		: m_Socket(socket), m_Timer(socket->get_io_service()),
 		  m_BufferLen(0), m_Session(session)
 	{
@@ -171,7 +171,7 @@ namespace util
 	void HTTPConnection::HandleI2PControlRequest()
 	{
 		std::stringstream ss(m_Request.getContent());
-		const client::I2PControlSession::Response rsp = m_Session->handleRequest(ss);
+		const client::i2pcontrol::I2PControlSession::Response rsp = m_Session->handleRequest(ss);
 		m_Reply = i2p::util::http::Response(200, rsp.toJsonString());
 		m_Reply.setHeader("Content-Type", "application/json");
 		SendReply();
@@ -210,7 +210,7 @@ namespace util
 		               boost::asio::ip::address::from_string(address), port)
 		          ),
 		m_NewSocket(nullptr),
-		m_Session(std::make_shared<i2p::client::I2PControlSession>(m_Service))
+		m_Session(std::make_shared<client::i2pcontrol::I2PControlSession>(m_Service))
 	{
 
 	}
