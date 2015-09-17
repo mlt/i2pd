@@ -97,6 +97,11 @@ namespace util
 		 */
 		std::string preprocessContent(const std::string& content, const std::string& path);
 
+		/**
+		 * @return the MIME type based on the extension of the given filename
+		 */
+		std::string getMimeType(const std::string& filename);
+
 	}
 }
 }
