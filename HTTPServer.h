@@ -42,7 +42,6 @@ namespace util
 			bool isAllowed(const std::string& address);
 		private:
 			boost::asio::ip::tcp::socket* m_Socket;
-			boost::asio::deadline_timer m_Timer;
 			char m_Buffer[HTTP_CONNECTION_BUFFER_SIZE + 1];
 			size_t m_BufferLen;
 			util::http::Request m_Request;

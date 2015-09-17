@@ -1,46 +1,19 @@
 #include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <ctime>
 #include <fstream>
-#include "base64.h"
 #include "Log.h"
 #include "util.h"
-#include "Tunnel.h"
-#include "TransitTunnel.h"
-#include "Transports.h"
-#include "NetworkDatabase.h"
 #include "I2PEndian.h"
-#include "Streaming.h"
-#include "Destination.h"
-#include "RouterContext.h"
-#include "ClientContext.h"
 #include "HTTPServer.h"
-
-// For image and info
-#include "version.h"
 
 namespace i2p
 {
 namespace util
 {
 
-	const char HTTP_COMMAND_TUNNELS[] = "tunnels";
-	const char HTTP_COMMAND_TRANSIT_TUNNELS[] = "transit_tunnels";
-	const char HTTP_COMMAND_TRANSPORTS[] = "transports";
-	const char HTTP_COMMAND_START_ACCEPTING_TUNNELS[] = "start_accepting_tunnels";
-	const char HTTP_COMMAND_STOP_ACCEPTING_TUNNELS[] = "stop_accepting_tunnels";
-	const char HTTP_COMMAND_LOCAL_DESTINATIONS[] = "local_destinations";
-	const char HTTP_COMMAND_LOCAL_DESTINATION[] = "local_destination";
-	const char HTTP_PARAM_BASE32_ADDRESS[] = "b32";
-	const char HTTP_COMMAND_SAM_SESSIONS[] = "sam_sessions";
-	const char HTTP_COMMAND_SAM_SESSION[] = "sam_session";
-	const char HTTP_PARAM_SAM_SESSION_ID[] = "id";
-
 	HTTPConnection::HTTPConnection(boost::asio::ip::tcp::socket* socket,
 	                               std::shared_ptr<client::i2pcontrol::I2PControlSession> session)
-		: m_Socket(socket), m_Timer(socket->get_io_service()),
-		  m_BufferLen(0), m_Session(session)
+		: m_Socket(socket), m_BufferLen(0), m_Session(session)
 	{
 
 	}
