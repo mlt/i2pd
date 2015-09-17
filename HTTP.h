@@ -3,6 +3,7 @@
 
 #include <string>
 #include <map>
+#include <sstream>
 
 namespace i2p
 {
@@ -17,6 +18,10 @@ namespace util
 				void parseRequestLine(const std::string& line);
 
 				void parseHeaderLine(const std::string& line);
+
+				void parseHeader(std::stringstream& ss);
+
+				void setIsComplete();
 			public:
 				Request() = default;
 
@@ -37,13 +42,26 @@ namespace util
 
 				std::string getContent() const;
 
+				bool hasData() const;
+
+				bool isComplete() const;
+
+				void clear();
+
+				void update(const std::string& data);
+
 			private:
+				std::string header_part;
+
 				std::string method;
 				std::string uri;
 				std::string host;
 				std::string content;
 				int port;
 				std::map<std::string, std::string> headers;
+				bool has_data;
+				bool has_header;
+				bool is_complete;
 		};
 
 		class Response
@@ -73,6 +91,11 @@ namespace util
 				std::string content;
 				std::map<std::string, std::string> headers;
 		};
+
+		/**
+		 * Handle server side includes.
+		 */
+		std::string preprocessContent(const std::string& content, const std::string& path);
 
 	}
 }
