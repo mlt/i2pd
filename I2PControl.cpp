@@ -27,6 +27,65 @@ namespace client
 	namespace i2pcontrol
 	{
 
+		JsonObject::JsonObject(const std::string& value)
+			: children(), value("\"" + value + "\"")
+		{
+
+		}
+
+		JsonObject::JsonObject(int value)
+			: children(), value(std::to_string(value))
+		{
+
+		}
+
+		JsonObject::JsonObject(double v)
+			: children(), value()
+		{
+			std::ostringstream oss;
+			oss << std::fixed << std::setprecision(2) << v;
+			value = oss.str();
+		}
+
+		JsonObject& JsonObject::operator[](const std::string& key)
+		{
+			return children[key];
+		}
+
+		std::string JsonObject::toString() const
+		{
+			if (children.empty())
+				return value;
+
+			std::ostringstream oss;
+			oss << '{';
+			for (auto it = children.begin(); it != children.end(); ++it)
+			{
+				if (it != children.begin())
+					oss << ',';
+				oss << '"' << it->first << "\":" << it->second.toString();
+			}
+			oss << '}';
+			return oss.str();
+		}
+
+		JsonObject tunnelToJsonObject(i2p::tunnel::Tunnel* tunnel)
+		{
+			JsonObject obj;
+
+			std::stringstream ss;
+			tunnel->GetTunnelConfig()->Print(ss); // TODO: use a JsonObject
+			obj["layout"] = JsonObject(ss.str());
+
+			const auto state = tunnel->GetState();
+			if (state == i2p::tunnel::eTunnelStateFailed)
+				obj["state"] = JsonObject("failed");
+			else if (state == i2p::tunnel::eTunnelStateExpiring)
+				obj["state"] = JsonObject("expiring");
+
+			return obj;
+		}
+
 		I2PControlSession::Response::Response(const std::string& version)
 			: id(), version(version), error(ErrorCode::None), parameters()
 		{
@@ -97,6 +156,11 @@ namespace client
 			parameters[param] = oss.str();
 		}
 
+		void I2PControlSession::Response::setParam(const std::string& param, const JsonObject& value)
+		{
+			parameters[param] = value.toString();
+		}
+
 		void I2PControlSession::Response::setError(ErrorCode code)
 		{
 			error = code;
@@ -131,6 +195,8 @@ namespace client
 			routerInfoHandlers[ROUTER_INFO_NET_STATUS] = &I2PControlSession::handleNetStatus;
 			routerInfoHandlers[ROUTER_INFO_TUNNELS_PARTICIPATING] = &I2PControlSession::handleTunnelsParticipating;
 			routerInfoHandlers[ROUTER_INFO_TUNNELS_CREATION_SUCCESS] = &I2PControlSession::handleTunnelsCreationSuccess;
+			routerInfoHandlers[ROUTER_INFO_TUNNELS_IN_LIST] = &I2PControlSession::handleTunnelsInList;
+			routerInfoHandlers[ROUTER_INFO_TUNNELS_OUT_LIST] = &I2PControlSession::handleTunnelsOutList;
 			routerInfoHandlers[ROUTER_INFO_BW_IB_1S] = &I2PControlSession::handleInBandwidth1S;
 			routerInfoHandlers[ROUTER_INFO_BW_OB_1S] = &I2PControlSession::handleOutBandwidth1S;
 
@@ -393,6 +459,35 @@ namespace client
 			    constants::ROUTER_INFO_TUNNELS_CREATION_SUCCESS,
 			    i2p::tunnel::tunnels.GetTunnelCreationSuccessRate()
 			);
+		}
+
+		void I2PControlSession::handleTunnelsInList(Response& response)
+		{
+			JsonObject list;
+
+			for (auto pair : i2p::tunnel::tunnels.GetInboundTunnels())
+			{
+				const std::string id = std::to_string(pair.first);
+				list[id] = tunnelToJsonObject(pair.second.get());
+				list[id]["bytes"] = JsonObject(
+				                        static_cast<int>(pair.second->GetNumReceivedBytes())
+				                    );
+			}
+			response.setParam(constants::ROUTER_INFO_TUNNELS_IN_LIST, list);
+		}
+
+		void I2PControlSession::handleTunnelsOutList(Response& response)
+		{
+			JsonObject list;
+			for (auto tunnel : i2p::tunnel::tunnels.GetOutboundTunnels())
+			{
+				const std::string id = std::to_string(tunnel->GetTunnelID());
+				list[id] = tunnelToJsonObject(tunnel.get());
+				list[id]["bytes"] = JsonObject(
+				                        static_cast<int>(tunnel->GetNumSentBytes())
+				                    );
+			}
+			response.setParam(constants::ROUTER_INFO_TUNNELS_OUT_LIST, list);
 		}
 
 		void I2PControlSession::handleInBandwidth1S(Response& response)
