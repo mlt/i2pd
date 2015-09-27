@@ -215,7 +215,8 @@ namespace util
 
 				// Read the contents of the included file
 				std::ifstream ifs(
-				    boost::filesystem::canonical(directory / std::string(match[1]), e).string()
+				    boost::filesystem::canonical(directory / std::string(match[1]), e).string(),
+				    std::ios_base::in | std::ios_base::binary
 				);
 				if (e || !ifs)
 					continue;
