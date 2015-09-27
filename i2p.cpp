@@ -3,9 +3,11 @@
 #include "Daemon.h"
 #include "Reseed.h"
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-Daemon.init(argc, argv);
+if (!Daemon.init(argc, argv))
+	return EXIT_FAILURE;
+
 if (Daemon.start())
 {
 	while (Daemon.running)
