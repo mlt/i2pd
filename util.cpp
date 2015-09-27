@@ -673,7 +673,7 @@ namespace util
 					sockaddr_in* localInterfaceAddress = (sockaddr_in*) lpAddr;
 					if (localInterfaceAddress->sin_addr.S_un.S_addr == inputAddress.sin_addr.S_un.S_addr)
 					{
-						result = pAddresses->Mtu;
+						auto result = pAddresses->Mtu;
 						FREE(pAddresses);
 						return result;
 					}
@@ -746,7 +746,7 @@ namespace util
 					}
 					if (found_address)
 					{
-						result = pAddresses->Mtu;
+						auto result = pAddresses->Mtu;
 						FREE(pAddresses);
 						pAddresses = nullptr;
 						return result;
