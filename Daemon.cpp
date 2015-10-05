@@ -66,7 +66,7 @@ namespace util
 			try
 			{
 				i2p::util::filesystem::InstallFiles();
-				LogPrint("Succesfully installed all files.");
+				LogPrint("Successfully installed all files.");
 			}
 			catch (const std::runtime_error& e)
 			{
