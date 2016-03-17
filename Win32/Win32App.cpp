@@ -191,6 +191,12 @@ namespace win32
             MessageBox(NULL, TEXT("I2Pd is running already"), TEXT("Warning"), MB_OK);
             return false;
         }
+		if (true) // config does not exist
+		{
+			SetupWizard w;
+			if (!w.Show())
+				return false;
+		}
         // register main window
         auto hInst = GetModuleHandle(NULL);
         WNDCLASSEX wclx;

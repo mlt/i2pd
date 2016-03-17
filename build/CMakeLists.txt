@@ -158,6 +158,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "OpenBSD")
   list (APPEND DAEMON_SRC "${CMAKE_SOURCE_DIR}/DaemonLinux.cpp")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Windows" OR MSYS)
   list (APPEND DAEMON_SRC "${CMAKE_SOURCE_DIR}/DaemonWin32.cpp")
+  list (APPEND DAEMON_SRC "${CMAKE_SOURCE_DIR}/Win32/wizard.cpp")
   if (WITH_GUI)
     list (APPEND DAEMON_SRC "${CMAKE_SOURCE_DIR}/Win32/Win32App.cpp")
     set_source_files_properties("${CMAKE_SOURCE_DIR}/DaemonWin32.cpp"

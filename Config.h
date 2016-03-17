@@ -19,6 +19,7 @@
 namespace i2p {
 namespace config {
   extern boost::program_options::variables_map m_Options;
+  extern boost::program_options::options_description m_OptionsDesc;
 
   /**
    * @brief  Initialize list of acceptable parameters
