@@ -5,6 +5,7 @@
 #include "../version.h"
 #include "resource.h"
 #include "Win32App.h"
+#include "wizard.h"
 #include <stdio.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1900

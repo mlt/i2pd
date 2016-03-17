@@ -32,7 +32,8 @@ namespace i2p
 			wclx.lpszClassName = I2PD_WIZARD_CLASSNAME;
 			RegisterClassEx(&wclx);
 			// create new window
-			hwndMain = CreateWindow(I2PD_WIZARD_CLASSNAME, TEXT("i2pd"), WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 250, 150, NULL, NULL, hInst, NULL);
+			hwndMain = CreateWindow(I2PD_WIZARD_CLASSNAME, TEXT("i2pd"), WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_VSCROLL,
+				100, 100, 450, 350, NULL, NULL, hInst, NULL);
 			if (!hwndMain)
 			{
 				MessageBox(NULL, "Failed to create main window", TEXT("Warning!"), MB_ICONERROR | MB_OK | MB_TOPMOST);
@@ -74,6 +75,8 @@ namespace i2p
 			return hwndTab;
 		}
 
+		std::map<HWND, std::string> g_EditWindows;
+
 		LRESULT CALLBACK SetupWizard::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 			static HWND hwndEdit;
@@ -83,48 +86,99 @@ namespace i2p
 			case WM_CREATE:
 			{
 //				hwndEdit = CreateTabs(hWnd);
-				hwndEdit = CreateWindowEx(
-					0, TEXT("EDIT"),   // predefined class 
-					NULL,         // no window title 
-					WS_CHILD | WS_VISIBLE | WS_VSCROLL |
-					ES_LEFT | ES_MULTILINE | ES_AUTOVSCROLL | ES_WANTRETURN,
-					0, 0, 0, 0,   // set size in WM_SIZE message 
-					hWnd,         // parent window 
-					(HMENU)ID_EDITCHILD,   // edit control ID 
-					(HINSTANCE)GetModuleHandle(NULL),
-					NULL);        // pointer not needed 
-								  //SendMessage(hwndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
+				//g_EditWindows
+				int y = 10;
+				//HDC hDC;
+				//hDC = GetDC(hwndEdit);
+				//HFONT hFont;
+				//hFont = (HFONT)SendMessage(hwndEdit, WM_GETFONT, 0, 0L);
+				//// If the font used is not the system font, select it.
+				//if (hFont != NULL)
+				//	SelectObject(hDC, hFont);
+				//TEXTMETRIC tm;
+				//GetTextMetrics(hDC, &tm);
+				//ReleaseDC(hwndEdit, hDC);
+				//SendMessage(hwndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
 				using namespace boost;
 				using namespace boost::program_options;
 				typedef shared_ptr<option_description> od;
 				const std::vector< od >& options = i2p::config::m_OptionsDesc.options();
-				std::stringstream ss;
+//				std::stringstream ss;
 				for (od o : options)
 				{
+					HWND hwndLabel = CreateWindowEx(
+						0, TEXT("EDIT"),   // predefined class 
+						NULL,         // no window title 
+						WS_CHILD | WS_VISIBLE | ES_LEFT,
+						10, y, 150, 16,   // don't set size in WM_SIZE message 
+						hWnd,         // parent window 
+						NULL,//(HMENU)ID_EDITCHILD,   // edit control ID 
+						g_hInst,
+						NULL);        // pointer not needed 
+					hwndEdit = CreateWindowEx(
+						0, TEXT("EDIT"),   // predefined class 
+						NULL,         // no window title 
+						WS_CHILD | WS_VISIBLE | ES_LEFT,
+						170, y, 150, 16,   // don't set size in WM_SIZE message 
+						hWnd,         // parent window 
+						NULL,//(HMENU)ID_EDITCHILD,   // edit control ID 
+						g_hInst,
+						NULL);        // pointer not needed 
+					HWND hwndDesc = CreateWindowEx(
+						0, TEXT("EDIT"),   // predefined class 
+						NULL,         // no window title 
+						WS_CHILD | WS_VISIBLE | ES_LEFT,
+						330, y, 150, 16,   // don't set size in WM_SIZE message 
+						hWnd,         // parent window 
+						NULL,//(HMENU)ID_EDITCHILD,   // edit control ID 
+						g_hInst,
+						NULL);        // pointer not needed 
 					if (0 == o->long_name().compare("help"))
 						continue;
+					SendMessage(hwndLabel, WM_SETTEXT, 0, (LPARAM)o->long_name().c_str());
+					variables_map::iterator it = i2p::config::m_Options.find(o->long_name());
+					if (it != i2p::config::m_Options.end())
+					{
+						any& v = it->second.value();
+						std::string val;
+						try
+						{
+							val = any_cast<std::string>(v);
+						}
+						catch (bad_any_cast& e) {
+							try
+							{
+								val = any_cast<bool>(v) ? "yes" : "no";
+							}
+							catch (bad_any_cast& e) {
+							}
+						}
+						SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)val.c_str());
+					}
+					SendMessage(hwndDesc, WM_SETTEXT, 0, (LPARAM)o->description().c_str());
+					y += 22;
 					//if (o->semantic()->max_tokens() < 1)
 					//	continue;
-					ss << o->long_name();
-					ss << " - ";
-					ss << o->description();
-					ss << "\r\n";
+					//ss << o->long_name();
+					//ss << " - ";
+					//ss << o->description();
+					//ss << "\r\n";
 				}
 
-				SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)ss.str().c_str());
+				//SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)ss.str().c_str());
 				// Add text to the window. 
 				//SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)lpszLatin); 
 				return 0;
 			}
-			case WM_SIZE:
-				// Make the edit control the size of the window's client area. 
+			//case WM_SIZE:
+			//	// Make the edit control the size of the window's client area. 
 
-				MoveWindow(hwndEdit,
-					0, 0,                  // starting x- and y-coordinates 
-					LOWORD(lParam),        // width of client area 
-					HIWORD(lParam),        // height of client area 
-					TRUE);                 // repaint window 
-				return 0; 
+			//	MoveWindow(hwndEdit,
+			//		0, 0,                  // starting x- and y-coordinates 
+			//		LOWORD(lParam),        // width of client area 
+			//		HIWORD(lParam),        // height of client area 
+			//		TRUE);                 // repaint window 
+			//	return 0; 
 			case WM_DESTROY:
 			{
 				PostQuitMessage(0);
