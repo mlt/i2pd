@@ -38,8 +38,7 @@ END
 
 3 TEXTINCLUDE 
 BEGIN
-    "\r\n"
-    "\0"
+    "#include ""Resource.rc2""\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -67,9 +66,7 @@ MASCOT					BITMAP					"Anke_700px.bmp"
 //
 // Generated from the TEXTINCLUDE 3 resource.
 //
-
 #include "Resource.rc2"
-
 /////////////////////////////////////////////////////////////////////////////
 #endif    // not APSTUDIO_INVOKED
 
