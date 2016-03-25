@@ -344,7 +344,7 @@ if (WITH_BINARY)
   endif()
 
   if (MSYS OR MINGW)
-    set (MINGW_EXTRA -lws2_32 -lmswsock -liphlpapi )
+    set (MINGW_EXTRA -lgdi32 -lws2_32 -lmswsock -liphlpapi )
   endif ()
   target_link_libraries( "${PROJECT_NAME}" libi2pd i2pdclient ${DL_LIB} ${Boost_LIBRARIES} ${OPENSSL_LIBRARIES} ${ZLIB_LIBRARY} ${CMAKE_THREAD_LIBS_INIT} ${MINGW_EXTRA} comctl32.lib)
 
