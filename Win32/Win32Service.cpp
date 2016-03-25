@@ -164,8 +164,11 @@ void I2PService::OnStart(DWORD dwArgc, PSTR *pszArgv)
 
 void I2PService::WorkerThread()
 {
+	bool insomnia; i2p::config::GetOption("insomnia", insomnia);
 	while (!m_fStopping)
 	{
+		if (insomnia)
+			SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
 		::Sleep(1000);  // Simulate some lengthy operations.
 	}
 

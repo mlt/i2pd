@@ -228,8 +228,11 @@ namespace win32
         MSG msg;
         while (GetMessage (&msg, NULL, 0, 0 ))
         {
+			//if (!IsDialogMessage(msg.hwnd, &msg))
+			//{
             TranslateMessage (&msg);
             DispatchMessage (&msg);
+			//}
         }
         return msg.wParam;
     }
