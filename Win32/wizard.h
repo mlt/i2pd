@@ -1,30 +1,21 @@
+/*
+* Copyright (c) 2013-2016, The PurpleI2P Project
+*
+* This file is part of Purple i2pd project and licensed under BSD3
+*
+* See full license text in LICENSE file at top of project tree
+*/
 #ifndef WIZARD_H__
 #define WIZARD_H__
-
-#include <windows.h>
 
 namespace i2p
 {
 	namespace win32
 	{
-		class SetupWizard
+		namespace config_editor
 		{
-		public:
-			SetupWizard();
-			bool Show();
-			virtual ~SetupWizard();
-		private:
-			HWND hwndMain;
-			HWND hwndTab;
-			static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-			static HWND CreateTabs(HWND hwndParent);
-			static int CALLBACK EditWordBreakProc(
-				_In_ LPTSTR lpch,
-				_In_ int    ichCurrent,
-				_In_ int    cch,
-				_In_ int    code
-				);
-		};
+			bool show();
+		}
 	}
 }
 

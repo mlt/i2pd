@@ -2,9 +2,9 @@
 // Microsoft Visual C++ generated include file.
 // Used by Resource.rc
 //
-#define MAINICON                    101
-#define MASCOT						201
+#define MAINICON                        101
 #define IDD_DIALOG1                     102
+#define MASCOT                          201
 
 // Next default values for new objects
 // 

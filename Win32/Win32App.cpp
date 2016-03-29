@@ -194,9 +194,7 @@ namespace win32
         }
 		if (true) // config does not exist
 		{
-			SetupWizard w;
-			if (!w.Show())
-				return false;
+			return config_editor::show();
 		}
         // register main window
         auto hInst = GetModuleHandle(NULL);

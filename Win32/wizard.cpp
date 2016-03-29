@@ -1,4 +1,12 @@
+/*
+* Copyright (c) 2013-2016, The PurpleI2P Project
+*
+* This file is part of Purple i2pd project and licensed under BSD3
+*
+* See full license text in LICENSE file at top of project tree
+*/
 #include "wizard.h"
+#include <windows.h>
 #include "Win32App.h"
 #include "resource.h"
 #include <exception>
@@ -6,258 +14,146 @@
 #include <CommCtrl.h>
 #include <boost/asio.hpp>
 #include <windowsx.h>
+#include "DialogTemplateHelper.h"
+#include <Strsafe.h> // error message formatting
 
 namespace i2p
 {
 	namespace win32
 	{
-#define I2PD_WIZARD_CLASSNAME "i2pd wizard"
-
+		namespace config_editor
+		{
 		HINSTANCE g_hInst = GetModuleHandle(NULL);
-		//HWND hwndMain = NULL;
 
-		SetupWizard::SetupWizard()
+		// could use vector - sequential numbering with known offset
+		std::map<DWORD, std::string> g_ControlsMap; //!< dialog id to option mapping
+
+		LRESULT OnHScroll(HWND hwnd, HWND hwndCtl, UINT code, int pos)
 		{
-			INITCOMMONCONTROLSEX ic;
-			ic.dwSize = sizeof(INITCOMMONCONTROLSEX);
-			ic.dwICC = ICC_STANDARD_CLASSES | ICC_INTERNET_CLASSES | ICC_TREEVIEW_CLASSES | ICC_UPDOWN_CLASS;
-			InitCommonControlsEx(&ic);
-			// register main window
-			auto hInst = GetModuleHandle(NULL);
-			WNDCLASSEX wclx;
-			memset(&wclx, 0, sizeof(wclx));
-			wclx.cbSize = sizeof(wclx);
-			wclx.style = 0;
-			wclx.lpfnWndProc = WndProc;
-			wclx.cbClsExtra = 0;
-			wclx.cbWndExtra = 0;
-			wclx.hInstance = hInst;
-			wclx.hIcon = LoadIcon(hInst, MAKEINTRESOURCE(MAINICON));
-			wclx.hCursor = LoadCursor(NULL, IDC_ARROW);
-			wclx.hbrBackground = (HBRUSH)(COLOR_WINDOW);
-			wclx.lpszMenuName = NULL;
-			wclx.lpszClassName = I2PD_WIZARD_CLASSNAME;
-			RegisterClassEx(&wclx);
-			// create new window
-			//hwndMain = CreateWindowEx(0, I2PD_WIZARD_CLASSNAME, TEXT("i2pd configuration"),
-			//	WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_VSCROLL | WS_EX_CONTROLPARENT,
-			//	100, 100, 450, 350, NULL, NULL, hInst, NULL);
-			//i2p::win32::hwndMain = hwndMain;
-			hwndMain = CreateDialog(g_hInst, MAKEINTRESOURCE(IDD_DIALOG1), NULL, WndProc);
-			if (!hwndMain)
+			return TRUE;
+		}
+		
+		int yPos = 0;
+		SCROLLINFO si = {};
+
+		/// https://msdn.microsoft.com/en-us/library/hh298421%28v=vs.85%29.aspx
+		void AdjustPos(SCROLLINFO& si, UINT code)
+		{
+			switch (code)
 			{
-				MessageBox(NULL, "Failed to create main window", TEXT("Warning!"), MB_ICONERROR | MB_OK | MB_TOPMOST);
-				throw std::exception("TODO");
+
+				// User clicked the HOME keyboard key.
+			case SB_TOP:
+				si.nPos = si.nMin;
+				break;
+
+				// User clicked the END keyboard key.
+			case SB_BOTTOM:
+				si.nPos = si.nMax;
+				break;
+
+				// User clicked the top arrow.
+			case SB_LINEUP:
+				si.nPos -= 1;
+				break;
+
+				// User clicked the bottom arrow.
+			case SB_LINEDOWN:
+				si.nPos += 1;
+				break;
+
+				// User clicked the scroll bar shaft above the scroll box.
+			case SB_PAGEUP:
+				si.nPos -= si.nPage;
+				break;
+
+				// User clicked the scroll bar shaft below the scroll box.
+			case SB_PAGEDOWN:
+				si.nPos += si.nPage;
+				break;
+
+				// User dragged the scroll box.
+			case SB_THUMBTRACK:
+				si.nPos = si.nTrackPos;
+				break;
+
+			default:
+				break;
 			}
 		}
 
-		bool SetupWizard::Show()
+		LRESULT OnVScroll(HWND hwnd, HWND hwndCtl, UINT code, int pos)
 		{
-			MSG msg;
-			while (GetMessage(&msg, NULL, 0, 0))
+			// Get all the vertial scroll bar information.
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_ALL;
+			GetScrollInfo(hwnd, SB_VERT, &si);
+
+			// Save the position for comparison later on.
+			yPos = si.nPos;
+			AdjustPos(si, code);
+
+			// Set the position and then retrieve it.  Due to adjustments
+			// by Windows it may not be the same as the value set.
+			si.fMask = SIF_POS;
+			SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+			GetScrollInfo(hwnd, SB_VERT, &si);
+
+			// If the position has changed, scroll window and update it.
+			if (si.nPos != yPos)
 			{
-				if (!IsDialogMessage(hwndMain, &msg))
-				{
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-				}
+				ScrollWindow(hwnd, 0, 10 * (yPos - si.nPos), NULL, NULL);
+				UpdateWindow(hwnd);
 			}
-			return msg.wParam;
+			return TRUE;
 		}
 
-		int CALLBACK SetupWizard::EditWordBreakProc(
-			_In_ LPTSTR lpch,
-			_In_ int    ichCurrent,
-			_In_ int    cch,
-			_In_ int    code
-			)
+		LRESULT OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		{
-			switch (code) {
-			case WB_ISDELIMITER:
-				return lpch[ichCurrent] == '\n';
-			}
-			return 0;
-		}
-
-		HWND SetupWizard::CreateTabs(HWND hwndParent)
-		{
-			HWND hwndTab = CreateWindow(WC_TABCONTROL, "",
-				WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE,
-				0, 0, 0, 0,
-				hwndParent, NULL, g_hInst, NULL);
-			TCITEM tci;
-			memset(&tci, 0, sizeof(TCITEM));
-			tci.mask = TCIF_TEXT;
-			tci.pszText = "Main";
-			TabCtrl_InsertItem(hwndTab, 0, &tci);
-			return hwndTab;
-		}
-
-		std::map<HWND, std::string> g_EditWindows;
-
-		LRESULT OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify) {
 			switch (id)
 			{
 			case IDOK:
 			case IDCANCEL:
-				DestroyWindow(hwnd);
+				EndDialog(hwnd, 0);
 				return id - 1;
-				//	case ID_ABOUT:
-				//	{
-				//		MessageBox(hWnd, TEXT("i2pd"), TEXT("About"), MB_ICONINFORMATION | MB_OK);
-				//		return 0;
-				//	}
-				//	case ID_EXIT:
-				//	{
-				//		PostMessage(hWnd, WM_CLOSE, 0, 0);
-				//		return 0;
-				//	}
-				//	case ID_CONSOLE:
-				//	{
-				//		char buf[30];
-				//		std::string httpAddr; i2p::config::GetOption("http.address", httpAddr);
-				//		uint16_t    httpPort; i2p::config::GetOption("http.port", httpPort);
-				//		snprintf(buf, 30, "http://%s:%d", httpAddr.c_str(), httpPort);
-				//		ShellExecute(NULL, "open", buf, NULL, NULL, SW_SHOWNORMAL);
-				//		return 0;
-				//	}
-				//	case ID_APP:
-				//	{
-				//		ShowWindow(hWnd, SW_SHOW);
-				//		return 0;
-				//	}
 			}
 		}
 
-		LRESULT OnDestroy(HWND hwnd)
+		std::vector<std::function<void(HWND)> > g_DlgItemsInitCalls;
+
+		LRESULT OnInitDialog(HWND hWnd, HWND hwndFocus, LPARAM)
 		{
-			PostQuitMessage(0);
+			for (auto& fun : g_DlgItemsInitCalls)
+				fun(hWnd);
 			return TRUE;
 		}
 
-		LRESULT CALLBACK SetupWizard::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		INT_PTR OnSize(HWND hwnd, UINT state, int cx, int cy)
 		{
-			HWND hwndEdit = NULL;
-			HFONT hFont = NULL;
+			SCROLLINFO si;
+			// Set the vertical scrolling range and page size
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_RANGE;// | SIF_PAGE;
+			si.nMin = 0;
+			si.nMax = 500;//LINES - 1;
+			si.nPage = cy;// / 10;
+			SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+
+			// Set the horizontal scrolling range and page size. 
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_RANGE;// | SIF_PAGE;
+			si.nMin = 0;
+			si.nMax = 200;//2 + xClientMax / xChar;
+			si.nPage = cx / 10;
+			SetScrollInfo(hwnd, SB_HORZ, &si, TRUE); 
+			return TRUE;
+		}
+
+		INT_PTR CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		{
 			LONG scrollpos = 0;
-#define ID_EDITCHILD 100
 			switch (uMsg)
 			{
-			case WM_INITDIALOG:
-			case WM_CREATE:
-			{
-//				hwndEdit = CreateTabs(hWnd);
-				//g_EditWindows
-				//HDC hDC;
-				//hDC = GetDC(hwndEdit);
-				//HFONT hFont;
-				//hFont = (HFONT)SendMessage(hwndEdit, WM_GETFONT, 0, 0L);
-				//// If the font used is not the system font, select it.
-				//if (hFont != NULL)
-				//	SelectObject(hDC, hFont);
-				//TEXTMETRIC tm;
-				//GetTextMetrics(hDC, &tm);
-				//ReleaseDC(hwndEdit, hDC);
-				//SendMessage(hwndEdit, EM_SETWORDBREAKPROC, 0, (LPARAM)EditWordBreakProc);
-				using namespace boost;
-				using namespace boost::program_options;
-				typedef shared_ptr<option_description> od;
-				const std::vector< od >& options = i2p::config::m_OptionsDesc.options();
-//				std::stringstream ss;
-				LONG dlu = ::GetDialogBaseUnits();
-				LONG dlux = LOWORD(dlu);
-				LONG dluy = HIWORD(dlu);
-				int y = dlux;
-				NONCLIENTMETRICS ncm;
-				ncm.cbSize = sizeof(ncm);
-				SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
-				hFont = CreateFontIndirect(&(ncm.lfMessageFont));
-				//hFont = CreateFont(16, 0, 0, 0, FW_DONTCARE, FALSE, FALSE, FALSE, ANSI_CHARSET, \
-				//	OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, \
-				//	DEFAULT_PITCH | FF_SWISS, "Microsoft Sans Serif");//"Tahoma");
-				for (od o : options)
-				{
-					HWND hwndLabel = CreateWindowEx(0, WC_STATIC, NULL,	WS_CHILD | WS_VISIBLE | SS_RIGHT,
-						dlux, y, 19*dlux, MulDiv(2, dluy, 2), hWnd, NULL, g_hInst, NULL);
-					HWND hwndDesc = CreateWindowEx( 0, WC_STATIC, NULL, WS_CHILD | WS_VISIBLE,
-						41*dlux, y, 60*dlux, MulDiv(2, dluy, 2), hWnd, NULL, g_hInst, NULL);
-					if (0 == o->long_name().compare("help"))
-						continue;
-					SendMessage(hwndLabel, WM_SETTEXT, 0, (LPARAM)o->long_name().c_str());
-					SendMessage(hwndLabel, WM_SETFONT, WPARAM(hFont), TRUE);
-					variables_map::iterator it = i2p::config::m_Options.find(o->long_name());
-					if (it != i2p::config::m_Options.end())
-					{
-						any& v = it->second.value();
-						const typeindex::type_info& t = v.type();
-						size_t hash_code = t.hash_code();
-//						if (hash_code == boost::typeindex::type_id<std::string>().hash_code())
-						if (t == boost::typeindex::type_id<std::string>())
-						{
-							std::string val = any_cast<std::string>(v);
-							boost::system::error_code ec;
-							boost::asio::ip::address a = boost::asio::ip::address::from_string(val, ec);
-							if (ec)
-							{
-								hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, WC_EDIT, NULL, WS_CHILD | WS_VISIBLE | ES_LEFT | WS_TABSTOP,
-									170, y, 150, 20, hWnd, NULL, g_hInst, NULL);
-								SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)val.c_str());
-							}
-							else
-							{
-								hwndEdit = CreateWindowEx(0, WC_IPADDRESS, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-									170, y, 150, 20, hWnd, NULL, g_hInst, NULL);
-								SendMessage(hwndEdit, IPM_SETADDRESS, 0, (LPARAM)a.to_v4().to_ulong());
-							}
-						}
-						else if (hash_code == boost::typeindex::type_id<uint16_t>().hash_code())
-						{
-							std::string val = std::to_string(any_cast<uint16_t>(v));
-							hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, WC_EDIT, NULL, WS_CHILD | WS_VISIBLE | ES_LEFT | ES_NUMBER | WS_TABSTOP,
-								170, y, 150, 20, hWnd, NULL, g_hInst, NULL);
-							SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)val.c_str());
-						}
-						else if (hash_code == boost::typeindex::type_id<bool>().hash_code())
-						{
-							bool val = any_cast<bool>(v);
-							hwndEdit = CreateWindowEx(0, WC_BUTTON, NULL, WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
-								170, y, 150, 20, hWnd, NULL, g_hInst, NULL);
-							SendMessage(hwndEdit, BM_SETCHECK, val ? BST_CHECKED : BST_UNCHECKED, 0);
-						}
-						else if (hash_code == boost::typeindex::type_id<char>().hash_code())
-						{
-							std::string val("x"); val[0] = any_cast<char>(v);
-							hwndEdit = CreateWindowEx(WS_EX_CLIENTEDGE, WC_EDIT, NULL, WS_CHILD | WS_BORDER | WS_VISIBLE | ES_LEFT | WS_TABSTOP,
-								170, y, 150, 20, hWnd, NULL, g_hInst, NULL);
-							SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)val.c_str());
-						}
-						else
-						{
-							throw std::exception(std::string("not implemented for ").append(t.name()).c_str());
-						}
-					}
-					SendMessage(hwndDesc, WM_SETTEXT, 0, (LPARAM)o->description().c_str());
-					SendMessage(hwndDesc, WM_SETFONT, WPARAM(hFont), TRUE);
-					if (NULL != hwndEdit)
-						SendMessage(hwndEdit, WM_SETFONT, WPARAM(hFont), TRUE);
-					y += MulDiv(dluy, 6, 4);
-					//if (o->semantic()->max_tokens() < 1)
-					//	continue;
-					//ss << o->long_name();
-					//ss << " - ";
-					//ss << o->description();
-					//ss << "\r\n";
-				}
-				//SetScrollRange(hWnd, SB_CTL| SB_VERT, 0, y, TRUE);
-				RECT r;
-				GetWindowRect(hWnd, &r);
-				//Setwindo
-//				SetWindowPos(hWnd, NULL, r.left, r.top, 42*dlux, y, 0);
-				//SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)ss.str().c_str());
-				// Add text to the window. 
-				//SendMessage(hwndEdit, WM_SETTEXT, 0, (LPARAM)lpszLatin); 
-				return TRUE;
-			}
 			//case WM_VSCROLL:
 			//{
 			//	//SCROLLINFO si;
@@ -283,15 +179,222 @@ namespace i2p
 			//	PostQuitMessage(0);
 			//	break;
 			//}
-			HANDLE_MSG(hWnd, WM_DESTROY, OnDestroy);
+//			HANDLE_MSG(hWnd, WM_DESTROY, OnDestroy);
+			HANDLE_MSG(hWnd, WM_INITDIALOG, OnInitDialog);
+			HANDLE_MSG(hWnd, WM_HSCROLL, OnHScroll);
+			HANDLE_MSG(hWnd, WM_VSCROLL, OnVScroll);
 			HANDLE_MSG(hWnd, WM_COMMAND, OnCommand);
+			HANDLE_MSG(hWnd, WM_SIZE, OnSize);
 			}
-			return DefWindowProc(hWnd, uMsg, wParam, lParam);
+			return FALSE;
 		}
 
-		SetupWizard::~SetupWizard()
+		size_t add_controls(DialogTemplateHelper& h)
 		{
-			UnregisterClass(I2PD_WIZARD_CLASSNAME, GetModuleHandle(NULL));
+			using namespace boost;
+			using namespace boost::program_options;
+			typedef shared_ptr<option_description> od;
+			const std::vector< od >& options = i2p::config::m_OptionsDesc.options();
+			size_t cnt = 0;
+			LPDLGITEMTEMPLATEEX lpdit = NULL;
+			short y = 4;
+			DWORD id = 100;
+			g_ControlsMap.clear();
+			g_DlgItemsInitCalls.clear();
+
+			for (od o : options)
+			{
+				if (0 == o->long_name().compare("help"))
+					continue;
+
+				lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
+				lpdit->helpID = 0;
+				lpdit->x = 4; lpdit->cx = 76;
+				lpdit->y = y; lpdit->cy = 9;
+				lpdit->style = WS_CHILD | WS_VISIBLE | SS_RIGHT;
+				lpdit->dwExtendedStyle = 0;
+				lpdit->id = -1;
+				*h.Allocate<WORD>() = 0xFFFF;
+				*h.Allocate<WORD>() = 0x0082;        // static class
+				h.Write(o->long_name().c_str());
+				*h.Allocate<WORD>() = 0; // No creation data
+
+				lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
+				lpdit->helpID = 0;
+				lpdit->x = 156; lpdit->cx = 200;
+				lpdit->y = y; lpdit->cy = 9;
+				lpdit->style = WS_CHILD | WS_VISIBLE;
+				lpdit->dwExtendedStyle = 0;
+				lpdit->id = -1;
+				*h.Allocate<WORD>() = 0xFFFF;
+				*h.Allocate<WORD>() = 0x0082;        // static class
+				h.Write(o->description().c_str());
+				*h.Allocate<WORD>() = 0; // No creation data
+
+
+				lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
+				lpdit->helpID = 0;
+				lpdit->x = 84; lpdit->cx = 68;
+				lpdit->y = y; lpdit->cy = 10;
+				lpdit->style = WS_CHILD | WS_VISIBLE | WS_TABSTOP;
+				lpdit->dwExtendedStyle = 0;
+				lpdit->id = id;
+
+				g_ControlsMap[id] = o->long_name();
+
+				variables_map::iterator it = i2p::config::m_Options.find(o->long_name());
+				if (it != i2p::config::m_Options.end())
+				{
+					any& v = it->second.value();
+					const typeindex::type_info& t = v.type();
+					if (t == boost::typeindex::type_id<std::string>())
+					{
+						std::string val = any_cast<std::string>(v);
+						boost::system::error_code ec;
+						boost::asio::ip::address a = boost::asio::ip::address::from_string(val, ec);
+						if (ec)
+						{
+							lpdit->dwExtendedStyle = WS_EX_CLIENTEDGE;
+							*h.Allocate<WORD>() = 0xFFFF;
+							*h.Allocate<WORD>() = 0x0081;        // edit class
+							h.Write(val.c_str());
+						}
+						else
+						{
+							h.Write(WC_IPADDRESS);
+							*h.Allocate<WORD>() = 0;
+							g_DlgItemsInitCalls.push_back( std::bind(SendDlgItemMessage, std::placeholders::_1, id, IPM_SETADDRESS, 0, a.to_v4().to_ulong()) );
+						}
+					}
+					else if (t == boost::typeindex::type_id<uint16_t>())
+					{
+						std::string val = std::to_string(any_cast<uint16_t>(v));
+						lpdit->style |= ES_NUMBER;
+						lpdit->dwExtendedStyle = WS_EX_CLIENTEDGE;
+						*h.Allocate<WORD>() = 0xFFFF;
+						*h.Allocate<WORD>() = 0x0081;        // edit class
+						h.Write(val.c_str());
+					}
+					else if (t == boost::typeindex::type_id<bool>())
+					{
+						bool val = any_cast<bool>(v);
+						lpdit->style |= BS_AUTOCHECKBOX;
+						*h.Allocate<WORD>() = 0xFFFF;
+						*h.Allocate<WORD>() = 0x0080;        // button class
+						*h.Allocate<WORD>() = 0;
+						g_DlgItemsInitCalls.push_back( std::bind(SendDlgItemMessage, std::placeholders::_1, id, BM_SETCHECK, val ? BST_CHECKED : BST_UNCHECKED, 0) );
+					}
+					else if (t == boost::typeindex::type_id<char>())
+					{
+						std::string val("x"); val[0] = any_cast<char>(v);
+						lpdit->dwExtendedStyle = WS_EX_CLIENTEDGE;
+						*h.Allocate<WORD>() = 0xFFFF;
+						*h.Allocate<WORD>() = 0x0081;        // edit class
+						h.Write(val.c_str());
+					}
+					else
+					{
+						throw std::invalid_argument(std::string("not implemented for ").append(t.name()).c_str());
+					}
+				}
+				*h.Allocate<WORD>() = 0; // No creation data
+				y += 11;
+				cnt++;
+				id++;
+			}
+			return cnt;
 		}
+
+		void ErrorExit(LPTSTR lpszFunction)
+		{
+			// Retrieve the system error message for the last-error code
+
+			LPVOID lpMsgBuf;
+			LPVOID lpDisplayBuf;
+			DWORD dw = GetLastError();
+
+			FormatMessage(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				FORMAT_MESSAGE_FROM_SYSTEM |
+				FORMAT_MESSAGE_IGNORE_INSERTS,
+				NULL,
+				dw,
+				MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+				(LPTSTR)&lpMsgBuf,
+				0, NULL);
+
+			// Display the error message and exit the process
+
+			lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT,
+				(lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR));
+			StringCchPrintf((LPTSTR)lpDisplayBuf,
+				LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+				TEXT("%s failed with error %d: %s"),
+				lpszFunction, dw, lpMsgBuf);
+			MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK);
+
+			LocalFree(lpMsgBuf);
+			LocalFree(lpDisplayBuf);
+		}
+
+		bool show()
+		{
+			INITCOMMONCONTROLSEX ic;
+			ic.dwSize = sizeof(INITCOMMONCONTROLSEX);
+			ic.dwICC = ICC_STANDARD_CLASSES | ICC_INTERNET_CLASSES | ICC_TREEVIEW_CLASSES | ICC_UPDOWN_CLASS;
+			InitCommonControlsEx(&ic);
+			DialogTemplateHelper h;
+			//LPDLGTEMPLATE lpdt = h.Allocate<DLGTEMPLATE>();
+			LPDLGTEMPLATEEX lpdt = h.Allocate<DLGTEMPLATEEX>();
+			lpdt->dlgVer = 1;
+			lpdt->signature = 0xFFFF;
+			lpdt->helpID = 0;
+			lpdt->style = WS_CAPTION | WS_SYSMENU | DS_MODALFRAME | WS_THICKFRAME | DS_SETFONT | WS_MAXIMIZEBOX | WS_VSCROLL;// | DS_CENTER;
+			//WS_POPUP | WS_BORDER | WS_SYSMENU | DS_MODALFRAME | WS_CAPTION | WS_THICKFRAME;// | DS_SETFONT;
+			lpdt->dwExtendedStyle = 0;
+			lpdt->cdit = 1;         // Number of controls
+			lpdt->x = 10;  lpdt->y = 10;
+			lpdt->cx = 500; lpdt->cy = 300;
+			*h.Allocate<WORD>() = 0; // no menu
+			*h.Allocate<WORD>() = 0; // default class
+			h.Write("i2pd settings");
+
+			NONCLIENTMETRICS ncm;
+			ncm.cbSize = sizeof(ncm);
+			HDC hdc = GetDC(NULL);
+			SystemParametersInfo(SPI_GETNONCLIENTMETRICS, ncm.cbSize, &ncm, 0);
+			// https://msdn.microsoft.com/en-us/library/windows/desktop/dd145037%28v=vs.85%29.aspx
+			if (ncm.lfMessageFont.lfHeight < 0) {
+				ncm.lfMessageFont.lfHeight = -MulDiv(ncm.lfMessageFont.lfHeight,
+					72, GetDeviceCaps(hdc, LOGPIXELSY));
+			}
+			ReleaseDC(NULL, hdc);
+			*h.Allocate<WORD>() = (WORD)ncm.lfMessageFont.lfHeight; // point
+			*h.Allocate<WORD>() = (WORD)ncm.lfMessageFont.lfWeight; // weight
+			*h.Allocate<BYTE>() = ncm.lfMessageFont.lfItalic; // Italic
+			*h.Allocate<BYTE>() = ncm.lfMessageFont.lfCharSet; // CharSet
+			h.Write(ncm.lfMessageFont.lfFaceName, LF_FACESIZE);
+
+			size_t cnt = add_controls(h);
+
+			LPDLGITEMTEMPLATEEX lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
+			lpdit->helpID = 0;
+			lpdit->x = 10; lpdit->y = ((short)cnt+1) * 11;
+			lpdit->cx = 20; lpdit->cy = 14;
+			lpdit->dwExtendedStyle = 0;
+			lpdit->id = IDOK;       // OK button identifier
+			lpdit->style = WS_CHILD | WS_VISIBLE | WS_GROUP | WS_TABSTOP | BS_DEFPUSHBUTTON;
+
+			*h.Allocate<WORD>() = 0xFFFF;
+			*h.Allocate<WORD>() = 0x0080;        // Button class
+			h.Write("&Ok");
+			*h.Allocate<WORD>() = 0; // No creation data
+
+			INT_PTR result = DialogBoxIndirect(g_hInst, h.GetBuffer(), GetDesktopWindow(), DlgProc);
+			if (-1 == result)
+				ErrorExit(TEXT("DialogBoxIndirect"));
+			return false;
+		}
+	}
 	}
 }
