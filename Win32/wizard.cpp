@@ -11,11 +11,11 @@
 #include "resource.h"
 #include <exception>
 #include "../Config.h"
-#include <CommCtrl.h>
+#include <commctrl.h>
 #include <boost/asio.hpp>
 #include <windowsx.h>
 #include "DialogTemplateHelper.h"
-#include <Strsafe.h> // error message formatting
+#include <strsafe.h> // error message formatting
 
 namespace i2p
 {
