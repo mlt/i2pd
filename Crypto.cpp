@@ -247,13 +247,13 @@ namespace crypto
 	{
 		if (m_DH->priv_key)  { BN_free (m_DH->priv_key); m_DH->priv_key = NULL; };
 		if (m_DH->pub_key)  { BN_free (m_DH->pub_key); m_DH->pub_key = NULL; };
-#if !defined(__x86_64__) // use short exponent for non x64 
+#if !defined(__x86_64__) &&  !defined(_WIN64) // use short exponent for non x64
 		m_DH->priv_key = BN_new ();
 		BN_rand (m_DH->priv_key, ELGAMAL_SHORT_EXPONENT_NUM_BITS, 0, 1);
 #endif		
 		if (g_ElggTable)
 		{	
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(_WIN64)
 			m_DH->priv_key = BN_new ();
 			BN_rand (m_DH->priv_key, ELGAMAL_FULL_EXPONENT_NUM_BITS, 0, 1);
 #endif			
@@ -294,7 +294,7 @@ namespace crypto
 		ctx = BN_CTX_new ();
 		// select random k
 		BIGNUM * k = BN_new ();
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(_WIN64)
 		BN_rand (k, ELGAMAL_FULL_EXPONENT_NUM_BITS, -1, 1); // full exponent for x64
 #else
 		BN_rand (k, ELGAMAL_SHORT_EXPONENT_NUM_BITS, -1, 1); // short exponent of 226 bits
@@ -378,7 +378,7 @@ namespace crypto
 
 	void GenerateElGamalKeyPair (uint8_t * priv, uint8_t * pub)
 	{
-#if defined(__x86_64__) || defined(__i386__) || defined(_MSC_VER)	
+#if defined(__x86_64__) || defined(__i386__) || defined(_WIN64)
 		RAND_bytes (priv, 256);
 #else
 		// lower 226 bits (28 bytes and 2 bits) only. short exponent
@@ -808,7 +808,7 @@ namespace crypto
 		CRYPTO_set_locking_callback (OpensslLockingCallback);*/
 		if (precomputation)
 		{	
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(_WIN64)
 			g_ElggTable = new BIGNUM * [ELGAMAL_FULL_EXPONENT_NUM_BYTES][255];
 			PrecalculateElggTable (g_ElggTable, ELGAMAL_FULL_EXPONENT_NUM_BYTES);
 #else			

@@ -183,7 +183,7 @@ namespace config {
 	options_description precomputation("Precomputation options");
 	precomputation.add_options()  
 	  ("precomputation.elgamal",  
-#if defined(__x86_64__)	   
+#if defined(__x86_64__) || defined(_WIN64)
 	   value<bool>()->default_value(false),   
 #else
 	   value<bool>()->default_value(true),  
