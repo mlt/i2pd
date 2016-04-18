@@ -28,87 +28,55 @@ namespace i2p
 		// could use vector - sequential numbering with known offset
 		std::map<DWORD, std::string> g_ControlsMap; //!< dialog id to option mapping
 
-		LRESULT OnHScroll(HWND hwnd, HWND hwndCtl, UINT code, int pos)
+		INT_PTR OnHScroll(HWND hwnd, HWND hwndCtl, UINT code, int pos)
 		{
 			return TRUE;
 		}
 		
-		int yPos = 0;
-		SCROLLINFO si = {};
-
 		/// https://msdn.microsoft.com/en-us/library/hh298421%28v=vs.85%29.aspx
 		void AdjustPos(SCROLLINFO& si, UINT code)
 		{
 			switch (code)
 			{
-
-				// User clicked the HOME keyboard key.
-			case SB_TOP:
-				si.nPos = si.nMin;
-				break;
-
-				// User clicked the END keyboard key.
-			case SB_BOTTOM:
-				si.nPos = si.nMax;
-				break;
-
-				// User clicked the top arrow.
-			case SB_LINEUP:
-				si.nPos -= 1;
-				break;
-
-				// User clicked the bottom arrow.
-			case SB_LINEDOWN:
-				si.nPos += 1;
-				break;
-
-				// User clicked the scroll bar shaft above the scroll box.
-			case SB_PAGEUP:
-				si.nPos -= si.nPage;
-				break;
-
-				// User clicked the scroll bar shaft below the scroll box.
-			case SB_PAGEDOWN:
-				si.nPos += si.nPage;
-				break;
-
-				// User dragged the scroll box.
-			case SB_THUMBTRACK:
-				si.nPos = si.nTrackPos;
-				break;
-
-			default:
-				break;
+			case SB_TOP:        si.nPos  =      si.nMin; break; // HOME key
+			case SB_BOTTOM:     si.nPos  =      si.nMax; break; // END key
+			case SB_LINEUP:     si.nPos -=           11; break; // UP key
+			case SB_LINEDOWN:   si.nPos +=           11; break; // DOWN key
+			case SB_PAGEUP:	    si.nPos -=     si.nPage; break; // User clicked the scroll bar shaft above the scroll box.
+			case SB_PAGEDOWN:   si.nPos +=     si.nPage; break; // User clicked the scroll bar shaft below the scroll box.
+			case SB_THUMBTRACK: si.nPos  = si.nTrackPos; break; // User dragged the scroll box.
 			}
 		}
 
-		LRESULT OnVScroll(HWND hwnd, HWND hwndCtl, UINT code, int pos)
+		INT_PTR OnVScroll(HWND hwnd, HWND hwndCtl, UINT code, int pos)
 		{
-			// Get all the vertial scroll bar information.
+			SCROLLINFO si;
 			si.cbSize = sizeof(si);
 			si.fMask = SIF_ALL;
 			GetScrollInfo(hwnd, SB_VERT, &si);
 
-			// Save the position for comparison later on.
-			yPos = si.nPos;
+			int yPos = si.nPos;
 			AdjustPos(si, code);
 
-			// Set the position and then retrieve it.  Due to adjustments
-			// by Windows it may not be the same as the value set.
 			si.fMask = SIF_POS;
 			SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
-			GetScrollInfo(hwnd, SB_VERT, &si);
+			GetScrollInfo(hwnd, SB_VERT, &si); // may not be the same
 
-			// If the position has changed, scroll window and update it.
 			if (si.nPos != yPos)
 			{
-				ScrollWindow(hwnd, 0, 10 * (yPos - si.nPos), NULL, NULL);
-				UpdateWindow(hwnd);
+				ScrollWindow(hwnd, 0, yPos - si.nPos, NULL, NULL);
+				//UpdateWindow(hwnd);
 			}
 			return TRUE;
 		}
 
-		LRESULT OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
+		INT_PTR OnMouseWheel(HWND hwnd, int xPos, int yPos, int zDelta, UINT fwKeys)
+		{
+			return OnVScroll(hwnd, NULL, zDelta>0 ? SB_PAGEUP : SB_PAGEDOWN, 0);
+			//return FALSE;
+		}
+
+		INT_PTR OnCommand(HWND hwnd, int id, HWND hwndCtl, UINT codeNotify)
 		{
 			switch (id)
 			{
@@ -120,76 +88,141 @@ namespace i2p
 		}
 
 		std::vector<std::function<void(HWND)> > g_DlgItemsInitCalls;
+		std::vector<std::function<void(HWND)> > g_DlgItemsHintCalls;
+		int content_height = 0;
+		int content_width = 0;
+		HFONT hfont = NULL;
 
-		LRESULT OnInitDialog(HWND hWnd, HWND hwndFocus, LPARAM)
+		INT_PTR OnInitDialog(HWND hwnd, HWND hwndFocus, LPARAM)
 		{
 			for (auto& fun : g_DlgItemsInitCalls)
-				fun(hWnd);
+				fun(hwnd);
+			for (auto& fun : g_DlgItemsHintCalls)
+				fun(hwnd);
+			RECT r = { 0, 0, 360, content_height };
+			MapDialogRect(hwnd, &r);
+			content_height = r.bottom;
+			content_width = r.right;
+			HWND w = GetDlgItem(hwnd, 2001);
+			SendMessage(w, WM_SETFONT, (WPARAM)hfont, FALSE);
+			return TRUE;
+		}
+
+		// https://msdn.microsoft.com/en-us/library/windows/desktop/hh298368%28v=vs.85%29.aspx
+		// We don't care about this child window to be destroyed http://stackoverflow.com/q/4850794/673826
+		void CreateToolTip(HWND hDlg, int toolID, PCTSTR pszText)
+		{
+			if (!toolID || !hDlg || !pszText)
+				return;
+
+			// Get the window of the tool.
+			HWND hwndTool = GetDlgItem(hDlg, toolID);
+
+			// Create the tooltip. g_hInst is the global instance handle.
+			HWND hwndTip = CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+				WS_POPUP | TTS_ALWAYSTIP | TTS_BALLOON,
+				CW_USEDEFAULT, CW_USEDEFAULT,
+				CW_USEDEFAULT, CW_USEDEFAULT,
+				hDlg, NULL,
+				g_hInst, NULL);
+
+			if (!hwndTool || !hwndTip)
+				return;
+
+			// Associate the tooltip with the tool.
+			TOOLINFO toolInfo = { 0 };
+			toolInfo.cbSize = sizeof(toolInfo);
+			toolInfo.hwnd = hDlg;
+			toolInfo.uFlags = TTF_IDISHWND | TTF_SUBCLASS | TTF_CENTERTIP;
+			toolInfo.uId = (UINT_PTR)hwndTool;
+			toolInfo.lpszText = const_cast<PTSTR>(pszText);
+			SendMessage(hwndTip, TTM_ADDTOOL, 0, (LPARAM)&toolInfo);
+		}
+
+		INT_PTR OnSizing(HWND hwnd, WPARAM edge, LPRECT rect)
+		{
+			RECT r = {0, 0, content_width, content_height};
+			DWORD ws = GetWindowStyle(hwnd);
+			AdjustWindowRect(&r, ws, FALSE);
+			LONG maxy = r.bottom - r.top + rect->top;
+			SCROLLINFO si;
+			si.cbSize = sizeof(si);
+			si.fMask = SIF_PAGE | SIF_RANGE;
+			GetScrollInfo(hwnd, SB_VERT, &si);
+			LONG maxx = r.right - r.left + rect->left + GetSystemMetrics(SM_CXVSCROLL) * (si.nMax > si.nPage);
+			if (rect->bottom > maxy)
+				rect->bottom = maxy;
+			//if (rect->right < maxx)
+				rect->right = maxx;
 			return TRUE;
 		}
 
 		INT_PTR OnSize(HWND hwnd, UINT state, int cx, int cy)
 		{
-			SCROLLINFO si;
-			// Set the vertical scrolling range and page size
-			si.cbSize = sizeof(si);
-			si.fMask = SIF_RANGE;// | SIF_PAGE;
-			si.nMin = 0;
-			si.nMax = 500;//LINES - 1;
-			si.nPage = cy;// / 10;
-			SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+			switch (state)
+			{
+			case SIZE_RESTORED:
+			case SIZE_MAXIMIZED:
+				break;
+			default:
+				return FALSE;
+			}
 
-			// Set the horizontal scrolling range and page size. 
-			si.cbSize = sizeof(si);
-			si.fMask = SIF_RANGE;// | SIF_PAGE;
+			SCROLLINFO si;
+			si.cbSize = sizeof(SCROLLINFO);
+			si.fMask = SIF_POS | SIF_PAGE | SIF_RANGE;
+			GetScrollInfo(hwnd, SB_VERT, &si);
+			bool bottom = (si.nPos > 0) && (si.nPos + si.nPage >= si.nMax + 1);
+
+			si.fMask = SIF_RANGE | SIF_PAGE; // SIF_POS | 
 			si.nMin = 0;
-			si.nMax = 200;//2 + xClientMax / xChar;
-			si.nPage = cx / 10;
-			SetScrollInfo(hwnd, SB_HORZ, &si, TRUE); 
+			si.nPage = cy >> 2;
+			si.nMax = std::max(0, content_height - cy + static_cast<int>(si.nPage) -1);
+			SetScrollInfo(hwnd, SB_VERT, &si, TRUE);
+			bool bottom2 = (si.nPos > 0) && (si.nPos + si.nPage >= si.nMax + 1);
+
+			int delta = - static_cast<int>(si.nMax) + si.nPos + si.nPage - 1;
+//			int delta = cy - content_height + si.nPos;
+			if (bottom && delta > 0)// || state == SIZE_MAXIMIZED)
+			{
+				ScrollWindow(hwnd, 0, delta, NULL, NULL);
+				//char buf[1024];
+				//sprintf(buf, "delta = %d\n", delta);
+				//::OutputDebugString(buf);
+			} else if (bottom2 && state == SIZE_MAXIMIZED)
+				// FIXME: why WM_SIZE is sent twice on max/restore???
+				ScrollWindow(hwnd, 0, si.nPos >> 1, NULL, NULL);
 			return TRUE;
 		}
 
-		INT_PTR CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		INT_PTR OnCtlColorStatic(HWND hwnd, HDC hdc, HWND hwndChild, int type)
 		{
-			LONG scrollpos = 0;
-			switch (uMsg)
-			{
-			//case WM_VSCROLL:
-			//{
-			//	//SCROLLINFO si;
-			//	//GetScrollInfo(hWnd, SB_VERT, &si);
-			//	WORD cp = HIWORD(wParam);
-			//	ScrollWindow(hWnd, 0, scrollpos - cp, NULL, NULL);
-			//	SetScrollPos(hWnd, SB_VERT, cp, FALSE);
-			//	scrollpos = cp;
-			//	//UpdateWindow(hWnd);
-			//	break;
-			//}
-			//case WM_SIZE:
-			//	// Make the edit control the size of the window's client area. 
-
-			//	MoveWindow(hwndEdit,
-			//		0, 0,                  // starting x- and y-coordinates 
-			//		LOWORD(lParam),        // width of client area 
-			//		HIWORD(lParam),        // height of client area 
-			//		TRUE);                 // repaint window 
-			//	return 0; 
-			//case WM_DESTROY:
-			//{
-			//	PostQuitMessage(0);
-			//	break;
-			//}
-//			HANDLE_MSG(hWnd, WM_DESTROY, OnDestroy);
-			HANDLE_MSG(hWnd, WM_INITDIALOG, OnInitDialog);
-			HANDLE_MSG(hWnd, WM_HSCROLL, OnHScroll);
-			HANDLE_MSG(hWnd, WM_VSCROLL, OnVScroll);
-			HANDLE_MSG(hWnd, WM_COMMAND, OnCommand);
-			HANDLE_MSG(hWnd, WM_SIZE, OnSize);
+			int id = GetDlgCtrlID(hwndChild);
+			if (2001 == id) {
+				SetTextColor(hdc, RGB(100, 100, 250));
+				SetBkColor(hdc, GetSysColor(COLOR_BTNFACE));
+				return (INT_PTR) GetSysColorBrush(COLOR_BTNFACE);
 			}
 			return FALSE;
 		}
 
-		size_t add_controls(DialogTemplateHelper& h)
+		INT_PTR CALLBACK DlgProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+		{
+			switch (uMsg)
+			{ // keep 'em sorted for jmp table optimization though no one cares
+			HANDLE_MSG(hWnd, WM_SIZE, OnSize);
+			HANDLE_MSG(hWnd, WM_INITDIALOG, OnInitDialog);
+			HANDLE_MSG(hWnd, WM_COMMAND, OnCommand);
+			HANDLE_MSG(hWnd, WM_HSCROLL, OnHScroll);
+			HANDLE_MSG(hWnd, WM_VSCROLL, OnVScroll);
+			HANDLE_MSG(hWnd, WM_CTLCOLORSTATIC, OnCtlColorStatic);
+			HANDLE_MSG(hWnd, WM_MOUSEWHEEL, OnMouseWheel);
+			case (WM_SIZING): return OnSizing(hWnd, wParam, (LPRECT)lParam);
+			}
+			return FALSE;
+		}
+
+		size_t add_controls(DialogTemplateHelper& h, short& y)
 		{
 			using namespace boost;
 			using namespace boost::program_options;
@@ -197,14 +230,23 @@ namespace i2p
 			const std::vector< od >& options = i2p::config::m_OptionsDesc.options();
 			size_t cnt = 0;
 			LPDLGITEMTEMPLATEEX lpdit = NULL;
-			short y = 4;
-			DWORD id = 100;
+			DWORD id = 1001;
 			g_ControlsMap.clear();
 			g_DlgItemsInitCalls.clear();
+			g_DlgItemsHintCalls.clear();
+
+			std::set< std::string > blacklist;
+			blacklist.insert("help");
+			blacklist.insert("conf");
+			blacklist.insert("svcctl");
+			blacklist.insert("pidfile");
+			blacklist.insert("daemon");
+			blacklist.insert("service");
 
 			for (od o : options)
 			{
-				if (0 == o->long_name().compare("help"))
+//				if (0 == o->long_name().compare("help"))
+				if (blacklist.find(o->long_name()) != blacklist.end())
 					continue;
 
 				lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
@@ -223,13 +265,16 @@ namespace i2p
 				lpdit->helpID = 0;
 				lpdit->x = 156; lpdit->cx = 200;
 				lpdit->y = y; lpdit->cy = 9;
-				lpdit->style = WS_CHILD | WS_VISIBLE;
+				lpdit->style = WS_CHILD | WS_VISIBLE | SS_ENDELLIPSIS;
 				lpdit->dwExtendedStyle = 0;
 				lpdit->id = -1;
 				*h.Allocate<WORD>() = 0xFFFF;
 				*h.Allocate<WORD>() = 0x0082;        // static class
 				h.Write(o->description().c_str());
 				*h.Allocate<WORD>() = 0; // No creation data
+
+				// We heavily hope options won't change after tooltips are created. Otherwise pointers would be a mess.
+				g_DlgItemsHintCalls.push_back( std::bind(CreateToolTip, std::placeholders::_1, id,  o->description().c_str()) );
 
 
 				lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
@@ -284,14 +329,15 @@ namespace i2p
 						*h.Allocate<WORD>() = 0;
 						g_DlgItemsInitCalls.push_back( std::bind(SendDlgItemMessage, std::placeholders::_1, id, BM_SETCHECK, val ? BST_CHECKED : BST_UNCHECKED, 0) );
 					}
-					else if (t == boost::typeindex::type_id<char>())
-					{
-						std::string val("x"); val[0] = any_cast<char>(v);
-						lpdit->dwExtendedStyle = WS_EX_CLIENTEDGE;
-						*h.Allocate<WORD>() = 0xFFFF;
-						*h.Allocate<WORD>() = 0x0081;        // edit class
-						h.Write(val.c_str());
-					}
+					// bandwidth is a string now
+					//else if (t == boost::typeindex::type_id<char>())
+					//{
+					//	std::string val("x"); val[0] = any_cast<char>(v);
+					//	lpdit->dwExtendedStyle = WS_EX_CLIENTEDGE;
+					//	*h.Allocate<WORD>() = 0xFFFF;
+					//	*h.Allocate<WORD>() = 0x0081;        // edit class
+					//	h.Write(val.c_str());
+					//}
 					else
 					{
 						throw std::invalid_argument(std::string("not implemented for ").append(t.name()).c_str());
@@ -354,7 +400,7 @@ namespace i2p
 			lpdt->dwExtendedStyle = 0;
 			lpdt->cdit = 1;         // Number of controls
 			lpdt->x = 10;  lpdt->y = 10;
-			lpdt->cx = 500; lpdt->cy = 300;
+			lpdt->cx = 360 + 10; lpdt->cy = 300;
 			*h.Allocate<WORD>() = 0; // no menu
 			*h.Allocate<WORD>() = 0; // default class
 			h.Write("i2pd settings");
@@ -375,22 +421,54 @@ namespace i2p
 			*h.Allocate<BYTE>() = ncm.lfMessageFont.lfCharSet; // CharSet
 			h.Write(ncm.lfMessageFont.lfFaceName, LF_FACESIZE);
 
-			size_t cnt = add_controls(h);
-
+			short y = 4;
+			ncm.lfMessageFont.lfHeight *= 2;//MulDiv(ncm.lfMessageFont.lfHeight, 3, 2);
+			ncm.lfMessageFont.lfWeight *= 2;
+			hfont = CreateFontIndirect(&ncm.lfMessageFont);
 			LPDLGITEMTEMPLATEEX lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
 			lpdit->helpID = 0;
-			lpdit->x = 10; lpdit->y = ((short)cnt+1) * 11;
-			lpdit->cx = 20; lpdit->cy = 14;
+			lpdit->x = 10; lpdit->y = y;
+			lpdit->cx = 340; lpdit->cy = 11;
 			lpdit->dwExtendedStyle = 0;
-			lpdit->id = IDOK;       // OK button identifier
-			lpdit->style = WS_CHILD | WS_VISIBLE | WS_GROUP | WS_TABSTOP | BS_DEFPUSHBUTTON;
-
+			lpdit->id = 2001;
+			lpdit->style = WS_CHILD | WS_VISIBLE | SS_CENTER;
 			*h.Allocate<WORD>() = 0xFFFF;
-			*h.Allocate<WORD>() = 0x0080;        // Button class
-			h.Write("&Ok");
+			*h.Allocate<WORD>() = 0x0082;        // static class
+			h.Write("Let's change some defaults if you feel like before we begin!");
 			*h.Allocate<WORD>() = 0; // No creation data
 
+			y += 14;
+
+			size_t cnt = add_controls(h, y);
+
+			lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
+			lpdit->helpID = 0;
+			lpdit->x = 270; lpdit->y = y;
+			lpdit->cx = 40; lpdit->cy = 14;
+			lpdit->dwExtendedStyle = 0;
+			lpdit->id = IDOK;
+			lpdit->style = WS_CHILD | WS_VISIBLE | WS_GROUP | WS_TABSTOP | BS_DEFPUSHBUTTON;
+			*h.Allocate<WORD>() = 0xFFFF;
+			*h.Allocate<WORD>() = 0x0080;        // Button class
+			h.Write("&OK");
+			*h.Allocate<WORD>() = 0; // No creation data
+
+			lpdit = h.Allocate<DLGITEMTEMPLATEEX>();
+			lpdit->helpID = 0;
+			lpdit->x = 315; lpdit->y = y;
+			lpdit->cx = 40; lpdit->cy = 14;
+			lpdit->dwExtendedStyle = 0;
+			lpdit->id = IDCANCEL;
+			lpdit->style = WS_CHILD | WS_VISIBLE | WS_GROUP | WS_TABSTOP;
+			*h.Allocate<WORD>() = 0xFFFF;
+			*h.Allocate<WORD>() = 0x0080;        // Button class
+			h.Write("&Cancel");
+			*h.Allocate<WORD>() = 0; // No creation data
+
+			content_height = y + 14 + 4;
+
 			INT_PTR result = DialogBoxIndirect(g_hInst, h.GetBuffer(), GetDesktopWindow(), DlgProc);
+			::DeleteObject(hfont);
 			if (-1 == result)
 				ErrorExit(TEXT("DialogBoxIndirect"));
 			return false;
